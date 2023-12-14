@@ -36,7 +36,7 @@
 #ifdef  SKIP_BREAKS
 #undef  SKIP_BREAKS
 #endif
-#define SKIP_BREAKS     while(CUR_TOKEN.info.opt == Operators::BREAK)       \
+#define SKIP_BREAKS     while(CUR_TOKEN.info.opt == Operators::BREAK && CUR_TOKEN.type == TokenType::OP)       \
                         {                                                   \
                             INCREASE_PTR;                                   \
                         }                                                   \
@@ -71,9 +71,11 @@
         }
 
 
+// Program          ::= Block END
 // WhileSection     ::= WHILE L_BRACKET Expression R_BRACKET {BREAK}* Block CLOSE_BLOCK BREAK
 // IfSection        ::= IF    L_BRACKET Expression R_BRACKET {BREAK}* Block CLOSE_BLOCK BREAK
-// Block            ::= {IfSection | WhileSection | Return | Assignment }*
+// Block            ::= {Line}*
+// Line             ::= {IfSection | WhileSection | Return | Assignment }*
 // Assignment       ::= VAR ASSIGN Expression BREAK
 // Return           ::= RETURN Expression BREAK
 // Expression       ::= OrOperand    { [OR] OrOperand }*
@@ -85,7 +87,9 @@
 // Trigonometry     ::=              { [SIN COS] Brackets }*
 // Brackets         ::= L_BRACKET Expression R_BRACKET | Number
 
+static Node* GetProgram(SyntaxStorage* storage, error_t* error);
 static Node* GetBlock(SyntaxStorage* storage, error_t* error);
+static Node* GetLine(SyntaxStorage* storage, error_t* error);
 static Node* GetReturn(SyntaxStorage* storage, error_t* error);
 static Node* GetWhileSection(SyntaxStorage* storage, error_t* error);
 static Node* GetIfSection(SyntaxStorage* storage, error_t* error);
@@ -112,7 +116,25 @@ void GetTreeFromTokens(LexisStorage* lexis, tree_t* tree, error_t* error)
     syn.ptr = 0;
     syn.lexis = lexis;
 
-    tree->root = GetReturn(&syn, error);
+    tree->root = GetProgram(&syn, error);
+}
+
+// -------------------------------------------------------------
+
+static Node* GetProgram(SyntaxStorage* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    SKIP_BREAKS;
+
+    Node* result = GetBlock(storage, error);
+
+    Operators opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
+
+    SYN_ASSERT(opt == Operators::END && CUR_TOKEN.type == TokenType::KEYWORD);
+
+    return result;
 }
 
 // -------------------------------------------------------------
@@ -122,65 +144,57 @@ static Node* GetBlock(SyntaxStorage* storage, error_t* error)
     assert(storage);
     assert(error);
 
-    Node* block = nullptr;
+    Node* val  = GetLine(storage, error);
+    Node* head = val;
 
-    Operators opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
-
-    while (opt != Operators::CLOSE_BLOCK)
+    while (val != nullptr)
     {
-        /*Node* _if = GetIfSection(storage, error);
-
-        if (_if != nullptr)
-            return _if;
-        BREAK_IF_ERROR(error);
-
-        Node* _while = GetWhileSection(storage, error);
-
-        if (_while != nullptr)
-            return _while;
-        BREAK_IF_ERROR(error);*/
-
-        /*Node* assign = GetAssignment(storage, error);
-
-        if (assign != nullptr)*/
-
+        Node* val2 = GetLine(storage, error);
+        ConnectNodes(val, nullptr, val2);
+        val = val2;
     }
 
-    return nullptr;
-
+    return head;
 }
 
 // -------------------------------------------------------------
 
-/*static Node* GetWhileSection(SyntaxStorage* storage, error_t* error)
+static Node* GetLine(SyntaxStorage* storage, error_t* error)
 {
     assert(storage);
     assert(error);
 
-    Operators opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
-
-    BREAK_ASSERT(opt == Operators::WHILE);
-
-    Node* _while = MakeNode(NodeType::OP, {.opt = opt});
-    INCREASE_PTR;
-
-    SYN_ASSERT(CUR_TOKEN.type     == TokenType::OP &&
-               CUR_TOKEN.info.opt == Operators::L_BRACKET)
-    INCREASE_PTR;
-
-    Node* cond = GetExpression(storage, error);
-
-    SYN_ASSERT(CUR_TOKEN.type     == TokenType::OP &&
-               CUR_TOKEN.info.opt == Operators::R_BRACKET);
-    INCREASE_PTR;
+    Node* val = nullptr;
 
     SKIP_BREAKS;
 
-    Node* action = GetBlock();
+    Operators opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
 
-    ConnectNodes(_while, cond, action);
+    if (opt == Operators::IF && CUR_TOKEN.type == TokenType::KEYWORD)
+    {
+        Node* _if = GetIfSection(storage, error);
+        return _if;
+    }
 
-    return _while;
+    if (opt == Operators::WHILE && CUR_TOKEN.type == TokenType::KEYWORD)
+    {
+        Node* _while = GetWhileSection(storage, error);
+        return _while;
+    }
+
+    if (opt == Operators::RETURN && CUR_TOKEN.type == TokenType::KEYWORD)
+    {
+        Node* ret = GetReturn(storage, error);
+        return ret;
+    }
+
+    if (CUR_TOKEN.type == TokenType::VAR)
+    {
+        Node* assign = GetAssignment(storage, error);
+        return assign;
+    }
+
+    return nullptr;
 }
 
 // -------------------------------------------------------------
@@ -190,9 +204,11 @@ static Node* GetIfSection(SyntaxStorage* storage, error_t* error)
     assert(storage);
     assert(error);
 
+    SKIP_BREAKS;
+
     Operators opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
 
-    BREAK_ASSERT(opt == Operators::IF);
+    SYN_ASSERT(opt == Operators::IF && CUR_TOKEN.type == TokenType::KEYWORD);
 
     Node* _if = MakeNode(NodeType::OP, {.opt = opt});
     INCREASE_PTR;
@@ -209,12 +225,67 @@ static Node* GetIfSection(SyntaxStorage* storage, error_t* error)
 
     SKIP_BREAKS;
 
-    Node* action = GetBlock();
+    Node* action = GetBlock(storage, error);
 
     ConnectNodes(_if, cond, action);
 
-    return _if;
-}*/
+    opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
+
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::KEYWORD &&
+                          opt == Operators::CLOSE_BLOCK);
+    INCREASE_PTR;
+
+    SKIP_BREAKS;
+
+    Node* _break = MakeNode(NodeType::OP, {.opt = Operators::BREAK}, _if);
+
+    return _break;
+}
+
+// -------------------------------------------------------------
+
+static Node* GetWhileSection(SyntaxStorage* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    SKIP_BREAKS;
+
+    Operators opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
+
+    SYN_ASSERT(opt == Operators::WHILE && CUR_TOKEN.type == TokenType::KEYWORD);
+
+    Node* _while = MakeNode(NodeType::OP, {.opt = opt});
+    INCREASE_PTR;
+
+    SYN_ASSERT(CUR_TOKEN.type     == TokenType::OP &&
+               CUR_TOKEN.info.opt == Operators::L_BRACKET)
+    INCREASE_PTR;
+
+    Node* cond = GetExpression(storage, error);
+
+    SYN_ASSERT(CUR_TOKEN.type     == TokenType::OP &&
+               CUR_TOKEN.info.opt == Operators::R_BRACKET);
+    INCREASE_PTR;
+
+    SKIP_BREAKS;
+
+    Node* action = GetBlock(storage, error);
+
+    ConnectNodes(_while, cond, action);
+
+    opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
+
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::KEYWORD &&
+                          opt == Operators::CLOSE_BLOCK);
+    INCREASE_PTR;
+
+    SKIP_BREAKS;
+
+    Node* _break = MakeNode(NodeType::OP, {.opt = Operators::BREAK}, _while);
+
+    return _break;
+}
 
 // -------------------------------------------------------------
 
@@ -225,7 +296,7 @@ static Node* GetAssignment(SyntaxStorage* storage, error_t* error)
 
     SKIP_BREAKS;
 
-    BREAK_ASSERT(CUR_TOKEN.type == TokenType::VAR);
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::VAR);
 
     Node* var = MakeNode(NodeType::VAR, {.var = CUR_TOKEN.info.var});
     INCREASE_PTR;
@@ -240,10 +311,10 @@ static Node* GetAssignment(SyntaxStorage* storage, error_t* error)
 
     SYN_ASSERT(CUR_TOKEN.type     == TokenType::OP &&
                CUR_TOKEN.info.opt == Operators::BREAK);
+    INCREASE_PTR;
 
     Node* assign = MakeNode(NodeType::OP, {.opt = opt}, var, val);
     Node* _break = MakeNode(NodeType::OP, {.opt = Operators::BREAK}, assign);
-    INCREASE_PTR;
 
     return _break;
 }
@@ -259,7 +330,7 @@ static Node* GetReturn(SyntaxStorage* storage, error_t* error)
 
     Operators opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
 
-    SYN_ASSERT(opt == Operators::RETURN);
+    SYN_ASSERT(opt == Operators::RETURN && CUR_TOKEN.type == TokenType::KEYWORD);
     INCREASE_PTR;
 
     Node* expr = GetExpression(storage, error);
@@ -315,8 +386,6 @@ static Node* GetOrOperand(SyntaxStorage* storage, error_t* error)
 
     while (CUR_TOKEN.type == TokenType::KEYWORD && opt == Operators::AND)
     {
-        DumpToken(stdout, &CUR_TOKEN);
-
         Node* op = MakeNode(NodeType::OP, {.opt = opt});
         INCREASE_PTR;
 
@@ -463,7 +532,6 @@ static Node* GetBrackets(SyntaxStorage* storage, error_t* error)
 
         SYN_ASSERT(CUR_TOKEN.type     == TokenType::OP &&
                    CUR_TOKEN.info.opt == Operators::R_BRACKET);
-
         INCREASE_PTR;
 
         return val;
@@ -490,7 +558,13 @@ static Node* GetNumber(SyntaxStorage* storage, error_t* error)
 
         SYN_ASSERT(CUR_TOKEN.type == TokenType::NUM || CUR_TOKEN.type == TokenType::VAR);
 
-        Node* num = MakeNode(NodeType::NUM, {.val = CUR_TOKEN.info.val});
+        Node* num = nullptr;
+
+        if (CUR_TOKEN.type == TokenType::NUM)
+            num = MakeNode(NodeType::NUM, {.val = CUR_TOKEN.info.val});
+        else
+            num = MakeNode(NodeType::VAR, {.val = CUR_TOKEN.info.var});
+
         INCREASE_PTR;
 
         val = ConnectNodes(op, MakeNode(NodeType::NUM, {.val = 0}), num);
@@ -499,7 +573,13 @@ static Node* GetNumber(SyntaxStorage* storage, error_t* error)
     {
         SYN_ASSERT(CUR_TOKEN.type == TokenType::NUM || CUR_TOKEN.type == TokenType::VAR);
 
-        Node* num = MakeNode(NodeType::NUM, {.val = CUR_TOKEN.info.val});
+        Node* num = nullptr;
+
+        if (CUR_TOKEN.type == TokenType::NUM)
+            num = MakeNode(NodeType::NUM, {.val = CUR_TOKEN.info.val});
+        else
+            num = MakeNode(NodeType::VAR, {.val = CUR_TOKEN.info.var});
+
         INCREASE_PTR;
 
         val = num;

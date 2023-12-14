@@ -79,6 +79,7 @@ void PrintOperator(FILE* fp, const Operators sign)
         CHECK_LONG_OP(ASSIGN);
         CHECK_LONG_OP(IF);
         CHECK_LONG_OP(WHILE);
+        CHECK_LONG_OP(END);
         CHECK_LONG_OP(AND);
         CHECK_LONG_OP(OR);
         CHECK_LONG_OP(GREATER);
@@ -89,7 +90,6 @@ void PrintOperator(FILE* fp, const Operators sign)
         CHECK_LONG_OP(NOT_EQUAL);
         CHECK_LONG_OP(RETURN);
         CHECK_LONG_OP(ELSE);
-        CHECK_LONG_OP(OPEN_BLOCK);
         CHECK_LONG_OP(CLOSE_BLOCK);
 
         default:

@@ -390,6 +390,7 @@ static CharType GetCharType(const int ch)
         case '=':
         case '.':
         case '?':
+        case '@':
         case '_':
         case '~':
         case ':':
@@ -429,12 +430,12 @@ static void FillNametableWithKeywords(nametable_t* nametable)
 
     InsertKeywordInTable(nametable, IF);
     InsertKeywordInTable(nametable, ELSE);
-    InsertKeywordInTable(nametable, OPEN_BLOCK);
     InsertKeywordInTable(nametable, CLOSE_BLOCK);
     InsertKeywordInTable(nametable, WHILE);
     InsertKeywordInTable(nametable, SIN);
     InsertKeywordInTable(nametable, COS);
     InsertKeywordInTable(nametable, ASSIGN);
+    InsertKeywordInTable(nametable, END);
     InsertKeywordInTable(nametable, AND);
     InsertKeywordInTable(nametable, OR);
     InsertKeywordInTable(nametable, LESS);

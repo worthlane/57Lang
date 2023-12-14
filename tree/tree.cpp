@@ -19,14 +19,18 @@ Node* ConnectNodes(Node* node, Node* left, Node* right)
 {
     assert(node);
 
-    node->left  = left;
-    node->right = right;
 
     if (left != nullptr)
+    {
+        node->left   = left;
         left->parent = node;
+    }
 
     if (right != nullptr)
+    {
+        node->right   = right;
         right->parent = node;
+    }
 
     return node;
 }

@@ -83,10 +83,11 @@ enum class Operators
     AND,
     OR,
 
-    OPEN_BLOCK,
     CLOSE_BLOCK,
 
     RETURN,
+
+    END,
 
     UNK
 };
