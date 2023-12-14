@@ -1,1 +1,2 @@
-5 := one + two * (five + _57$0_(three) ^ five)
+57 := five != three && _$1#_(five_seven) - three
+

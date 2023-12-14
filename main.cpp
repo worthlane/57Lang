@@ -30,15 +30,11 @@ int main(const int argc, const char* argv[])
     Tokenize(&info, &storage, &error);
     EXIT_IF_FRONTEND_ERROR;
 
-    // DumpSyntaxStorage(stdout, &storage);
+    DumpSyntaxStorage(stdout, &storage);
 
     TreeCtor(&tree, &error);
 
-    SyntaxStorage syn = {};
-    syn.ptr = 0;
-    syn.lexis = &storage;
-
-    tree.root = GetAssign(&syn, &error);
+    GetTreeFromTokens(&storage, &tree, &error);
     EXIT_IF_FRONTEND_ERROR;
 
     DUMP_TREE(&tree);

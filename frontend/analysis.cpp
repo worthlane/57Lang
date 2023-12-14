@@ -386,12 +386,15 @@ static CharType GetCharType(const int ch)
         case ',':
             return CharType::OPT;
         case '$':
+        case '#':
         case '=':
         case '.':
         case '?':
         case '_':
+        case '~':
         case ':':
         case '&':
+        case '!':
         case '|':
         case '<':
         case '>':
@@ -425,10 +428,22 @@ static void FillNametableWithKeywords(nametable_t* nametable)
     assert(nametable);
 
     InsertKeywordInTable(nametable, IF);
+    InsertKeywordInTable(nametable, ELSE);
+    InsertKeywordInTable(nametable, OPEN_BLOCK);
+    InsertKeywordInTable(nametable, CLOSE_BLOCK);
     InsertKeywordInTable(nametable, WHILE);
     InsertKeywordInTable(nametable, SIN);
     InsertKeywordInTable(nametable, COS);
     InsertKeywordInTable(nametable, ASSIGN);
+    InsertKeywordInTable(nametable, AND);
+    InsertKeywordInTable(nametable, OR);
+    InsertKeywordInTable(nametable, LESS);
+    InsertKeywordInTable(nametable, LESSEQUAL);
+    InsertKeywordInTable(nametable, GREATER);
+    InsertKeywordInTable(nametable, NOT_EQUAL);
+    InsertKeywordInTable(nametable, GREATEREQUAL);
+    InsertKeywordInTable(nametable, EQUAL);
+    InsertKeywordInTable(nametable, RETURN);
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -516,31 +531,38 @@ void DumpToken(FILE* fp, token_t* token)
 {
     assert(token);
 
+    fprintf(fp, "---------------\n");
+
     switch (token->type)
     {
         case TokenType::KEYWORD:
             fprintf(fp, "TYPE > KEYWORD\n"
                         "ID   > %d\n"
-                        "LINE > %d\n", token->info.var, token->line);
+                        "LINE > %d\n"
+                        "---------------\n", token->info.var, token->line);
             return;
         case TokenType::NUM:
             fprintf(fp, "TYPE > NUMBER\n"
                         "VAL  > %d\n"
-                        "LINE > %d\n", token->info.val, token->line);
+                        "LINE > %d\n"
+                        "---------------\n", token->info.val, token->line);
             return;
         case TokenType::OP:
             fprintf(fp, "TYPE > OPERATOR ");
             PrintOperator(fp, token->info.opt);
-            fprintf(fp, "\nLINE > %d\n", token->line);
+            fprintf(fp, "\nLINE > %d\n"
+                        "---------------\n", token->line);
             return;
         case TokenType::VAR:
             fprintf(fp, "TYPE > VARIABLE\n"
                         "ID   > %d\n"
-                        "LINE > %d\n", token->info.var, token->line);
+                        "LINE > %d\n"
+                        "---------------\n", token->info.var, token->line);
             return;
         case TokenType::POISON:
         default:
-            fprintf(fp, "POISONED TOKEN\n");
+            fprintf(fp, "POISONED TOKEN\n"
+                        "---------------\n");
             return;
     }
 }

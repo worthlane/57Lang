@@ -71,7 +71,22 @@ enum class Operators
     SIN,
     COS,
     IF,
+    ELSE,
     WHILE,
+
+    GREATER,
+    GREATEREQUAL,
+    LESS,
+    LESSEQUAL,
+    EQUAL,
+    NOT_EQUAL,
+    AND,
+    OR,
+
+    OPEN_BLOCK,
+    CLOSE_BLOCK,
+
+    RETURN,
 
     UNK
 };

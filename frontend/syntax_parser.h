@@ -9,6 +9,6 @@ struct SyntaxStorage
     size_t        ptr;
 };
 
-Node* GetAssign(SyntaxStorage* storage, error_t* error);
+void GetTreeFromTokens(LexisStorage* lexis, tree_t* tree, error_t* error);
 
 #endif

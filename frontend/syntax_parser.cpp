@@ -13,7 +13,8 @@
 #ifdef  INCREASE_PTR
 #undef  INCREASE_PTR
 #endif
-#define INCREASE_PTR    PrintLog("GOT TOKEN[%d], READING NEXT ON LINE [%d]<br>\n",       \
+#define INCREASE_PTR     \
+                        PrintLog("GOT TOKEN[%d], READING NEXT ON LINE [%d]<br>\n",       \
                                         storage->ptr++,                __LINE__);
 
 #ifdef  DECREASE_PTR
@@ -50,14 +51,27 @@
 
 // TODO errors
 
-// Asgn    ::= Var ASSIGN Expr END
-// Expr    ::= T { [ADD SUB] T }*
-// T       ::= Deg { [MUL DIV] Deg }*
-// Deg     ::= S { [^] S }*
-// S       ::= { [SIN COS] P }*
-// P       ::= L_BRACKET E R_BRACKET | Num
 
+// Body    ::= {Line}*
+// Line    ::= Asgn BREAK
+
+// WhileSection ::= WHILE L_BRACKET Expr R_BRACKET OPEN_BLOCK Body CLOSE_BLOCK
+// IfSection ::= IF L_BRACKET Expr R_BRACKET OPEN_BLOCK Body CLOSE_BLOCK (ELSE OPEN_BLOCK Body CLOSE_BLOCK)
+// Asgn      ::= Var ASSIGN Expr
+// Expr      ::= OrOp  { [OR] OrOp }*
+// OrOp      ::= AndOp { [AND] AndOp }*
+// AndOp     ::= Compare { [<=>] Compare }*
+// Compare   ::= T { [ADD SUB] T }*
+// T         ::= Deg { [MUL DIV] Deg }*
+// Deg       ::= S { [^] S }*
+// S         ::= { [SIN COS] P }*
+// P         ::= L_BRACKET Expr R_BRACKET | Num
+
+static Node* GetAssign(SyntaxStorage* storage, error_t* error);
 static Node* GetExpr(SyntaxStorage* storage, error_t* error);
+static Node* GetCompare(SyntaxStorage* storage, error_t* error);
+static Node* GetAndOperand(SyntaxStorage* storage, error_t* error);
+static Node* GetOrOperand(SyntaxStorage* storage, error_t* error);
 static Node* GetT(SyntaxStorage* storage, error_t* error);
 static Node* GetDeg(SyntaxStorage* storage, error_t* error);
 static Node* GetS(SyntaxStorage* storage, error_t* error);
@@ -66,7 +80,22 @@ static Node* GetNum(SyntaxStorage* storage, error_t* error);
 
 // -------------------------------------------------------------
 
-Node* GetAssign(SyntaxStorage* storage, error_t* error)
+void GetTreeFromTokens(LexisStorage* lexis, tree_t* tree, error_t* error)
+{
+    assert(lexis);
+    assert(tree);
+    assert(error);
+
+    SyntaxStorage syn = {};
+    syn.ptr = 0;
+    syn.lexis = lexis;
+
+    tree->root = GetAssign(&syn, error);
+}
+
+// -------------------------------------------------------------
+
+static Node* GetAssign(SyntaxStorage* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -85,7 +114,7 @@ Node* GetAssign(SyntaxStorage* storage, error_t* error)
     if (error->code != (int) ERRORS::NONE) return nullptr;
 
     SYN_ASSERT(CUR_TOKEN.type     == TokenType::OP &&
-               CUR_TOKEN.info.opt == Operators::BREAK); // TODO make end
+               CUR_TOKEN.info.opt == Operators::BREAK);
 
     return MakeNode(NodeType::OP, {.opt = opt}, var, val);
 }
@@ -94,14 +123,96 @@ Node* GetAssign(SyntaxStorage* storage, error_t* error)
 
 static Node* GetExpr(SyntaxStorage* storage, error_t* error)
 {
+    assert(error);
+    assert(storage);
+
+    Node* val = GetOrOperand(storage, error);
+
+    Operators opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
+
+    while (CUR_TOKEN.type == TokenType::KEYWORD && opt == Operators::OR)
+    {
+        Node* op = MakeNode(NodeType::OP, {.opt = opt});
+        INCREASE_PTR;
+
+        Node* val2 = GetOrOperand(storage, error);
+
+        val = ConnectNodes(op, val, val2);
+
+        opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
+    }
+
+    return val;
+}
+
+
+// -------------------------------------------------------------
+
+static Node* GetOrOperand(SyntaxStorage* storage, error_t* error)
+{
+    assert(error);
+    assert(storage);
+
+    Node* val = GetAndOperand(storage, error);
+
+    Operators opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
+
+    while (CUR_TOKEN.type == TokenType::KEYWORD && opt == Operators::AND)
+    {
+        DumpToken(stdout, &CUR_TOKEN);
+
+        Node* op = MakeNode(NodeType::OP, {.opt = opt});
+        INCREASE_PTR;
+
+        Node* val2 = GetAndOperand(storage, error);
+
+        val = ConnectNodes(op, val, val2);
+
+        opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
+    }
+
+    return val;
+}
+
+// -------------------------------------------------------------
+
+static Node* GetAndOperand(SyntaxStorage* storage, error_t* error)
+{
+    assert(error);
+    assert(storage);
+
+    Node* val = GetCompare(storage, error);
+
+    Operators opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
+
+    if (CUR_TOKEN.type == TokenType::KEYWORD &&
+       (opt == Operators::LESS    || opt == Operators::LESSEQUAL    || opt == Operators::EQUAL ||
+        opt == Operators::GREATER || opt == Operators::GREATEREQUAL || opt == Operators::NOT_EQUAL))
+    {
+        Node* op = MakeNode(NodeType::OP, {.opt = opt});
+        INCREASE_PTR;
+        Node* val2 = GetCompare(storage, error);
+
+        val = ConnectNodes(op, val, val2);
+
+        opt = TranslateKeywordToOperator(TOKEN_KEYWORD);
+    }
+
+    return val;
+}
+
+// -------------------------------------------------------------
+
+static Node* GetCompare(SyntaxStorage* storage, error_t* error)
+{
     assert(storage);
     assert(error);
 
     Node* val = GetT(storage, error);
 
-    while   (CUR_TOKEN.type     == TokenType::OP  &&
-            (CUR_TOKEN.info.opt == Operators::ADD ||
-             CUR_TOKEN.info.opt == Operators::SUB))
+    while (CUR_TOKEN.type     == TokenType::OP  &&
+          (CUR_TOKEN.info.opt == Operators::ADD ||
+           CUR_TOKEN.info.opt == Operators::SUB))
     {
         Node* op = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
         INCREASE_PTR;
@@ -146,7 +257,6 @@ static Node* GetDeg(SyntaxStorage* storage, error_t* error)
     while (CUR_TOKEN.type     == TokenType::OP &&
            CUR_TOKEN.info.opt == Operators::DEG)
     {
-
         Node* op = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
         INCREASE_PTR;
         Node* val2 = GetS(storage, error);
@@ -235,8 +345,6 @@ static Node* GetNum(SyntaxStorage* storage, error_t* error)
 
         Node* num = MakeNode(NodeType::NUM, {.val = CUR_TOKEN.info.val});
         INCREASE_PTR;
-
-        DumpToken(stdout, &CUR_TOKEN);
 
         val = num;
     }
