@@ -1,5 +1,1 @@
-57?
-++
-57... // s
-five_four_three_two
--
+5 := one + two * (five + _57$0_(three) ^ five)

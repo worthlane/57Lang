@@ -6,6 +6,7 @@
 #include "tree/tree.h"
 #include "tree/tree_output.h"
 #include "analysis.h"
+#include "syntax_parser.h"
 
 int main(const int argc, const char* argv[])
 {
@@ -22,11 +23,22 @@ int main(const int argc, const char* argv[])
     LinesStorage info = {};
     CreateTextStorage(&info, &error, data_file);
 
-    SyntaxStorage storage = {};
+    LexisStorage storage = {};
     SyntaxStorageCtor(&storage);
 
     Tokenize(&info, &storage, &error);
 
     DumpSyntaxStorage(stdout, &storage);
+
+    TreeCtor(&tree, &error);
+
+    SyntaxStorage syn = {};
+    syn.ptr = 0;
+    syn.lexis = &storage;
+
+    tree.root = GetAssign(&syn, &error);
+
+    DUMP_TREE(&tree);
+
 
 }

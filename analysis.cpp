@@ -6,6 +6,7 @@
 #include "analysis.h"
 #include "common/file_read.h"
 #include "common/errors.h"
+#include "tree/tree_output.h"
 
 enum class CharType
 {
@@ -17,12 +18,16 @@ enum class CharType
     UNK,
 };
 
-static CharType GetCharType(LinesStorage* text);
-static void     SkipSymbols(LinesStorage* text);
+static CharType CheckBufCharType(LinesStorage* text);
+static CharType GetCharType(const int ch);
 
-static bool TokenizeOperator(LinesStorage* text, SyntaxStorage* storage);
-static bool TokenizeWord(LinesStorage* text, SyntaxStorage* storage);
-static bool TokenizeNumber(LinesStorage* text, SyntaxStorage* storage);
+static void     SkipSymbols(LinesStorage* text);
+static bool     SkipComments(LinesStorage* text);
+static bool     SkipSpaces(LinesStorage* text);
+
+static bool TokenizeOperator(LinesStorage* text, LexisStorage* storage);
+static bool TokenizeWord(LinesStorage* text, LexisStorage* storage);
+static bool TokenizeNumber(LinesStorage* text, LexisStorage* storage);
 
 static bool CanCharBeInWord(const int ch);
 
@@ -30,9 +35,12 @@ static void ReadWord(LinesStorage* text, char* buffer);
 
 static Digits ReadDigit(LinesStorage* text, char* buffer);
 
+static int InsertKeywordInTable(nametable_t* nametable, const char* name);
+static void FillNametableWithKeywords(nametable_t* nametable);
+
 //-----------------------------------------------------------------------------------------------------
 
-void Tokenize(LinesStorage* text, SyntaxStorage* storage, error_t* error)
+void Tokenize(LinesStorage* text, LexisStorage* storage, error_t* error)
 {
     assert(text);
     assert(storage);
@@ -42,19 +50,27 @@ void Tokenize(LinesStorage* text, SyntaxStorage* storage, error_t* error)
     {
         SkipSymbols(text);
 
-        CharType type = GetCharType(text);
+        CharType type = CheckBufCharType(text);
 
         if (type == CharType::DIGIT || type == CharType::ADDITIONAL)
         {
             bool success = TokenizeWord(text, storage);
+            assert(success);
         }
         else if (type == CharType::OPT)
         {
             bool success = TokenizeOperator(text, storage);
+            assert(success);
         }
         else if (type == CharType::ALPHA)
         {
             bool success = TokenizeNumber(text, storage);
+            assert(success);
+        }
+        else
+        {
+            PrintLog("ANALYSIS STOPPED. UNKNOWN SYMBOL IN LINE %d<br>\n", text->curr_line);
+            abort();
         }
     }
 }
@@ -67,14 +83,14 @@ void Tokenize(LinesStorage* text, SyntaxStorage* storage, error_t* error)
 #define SAVE_IF_SAME(key)                                       \
         if (strncmp(buffer, key, MAX_NAME_LEN) == 0)            \
         {                                                       \
-            token->type         = TokenType::KEYWORD;                   \
-            token->info.keyword = Keywords::key;                 \
-            token->line         = line;                            \
-            storage->size++; \
+            token->type         = TokenType::KEYWORD;           \
+            token->info.keyword = Keywords::key;                \
+            token->line         = line;                         \
+            storage->size++;                                    \
             return true;                                        \
         }
 
-static bool TokenizeWord(LinesStorage* text, SyntaxStorage* storage)
+static bool TokenizeWord(LinesStorage* text, LexisStorage* storage)
 {
     assert(text);
     assert(storage);
@@ -86,15 +102,9 @@ static bool TokenizeWord(LinesStorage* text, SyntaxStorage* storage)
     char buffer[MAX_NAME_LEN] = "";
     ReadWord(text, buffer);
 
-    SAVE_IF_SAME(IF);
-    SAVE_IF_SAME(WHILE);
-    SAVE_IF_SAME(ASSIGN);
-    SAVE_IF_SAME(L_BRACKET);
-    SAVE_IF_SAME(R_BRACKET);
-
     int id = InsertNameInTable(&storage->names, buffer);
 
-    token->type     = TokenType::VAR;
+    token->type     = storage->names.list[id].type;
     token->info.var = id;
     token->line     = line;
     storage->size++;
@@ -106,7 +116,7 @@ static bool TokenizeWord(LinesStorage* text, SyntaxStorage* storage)
 
 //-----------------------------------------------------------------------------------------------------
 
-static bool TokenizeNumber(LinesStorage* text, SyntaxStorage* storage)
+static bool TokenizeNumber(LinesStorage* text, LexisStorage* storage)
 {
     assert(text);
     assert(storage);
@@ -211,26 +221,25 @@ static void ReadWord(LinesStorage* text, char* buffer)
 
 static bool CanCharBeInWord(const int ch)
 {
-    if ('0' <= ch && ch <= '9')
-        return true;
+    CharType type = GetCharType(ch);
 
-    switch (ch)
-    {
-        case '$':
-        case '=':
-        case '£':
-        case '.':
-        case '?':
-        case '_':
-            return true;
-        default:
-            return false;
-    }
+    if (type == CharType::DIGIT || type == CharType::ADDITIONAL)
+        return true;
+    else
+        return false;
 }
 
 //-----------------------------------------------------------------------------------------------------
 
-static bool TokenizeOperator(LinesStorage* text, SyntaxStorage* storage)
+#ifdef IS_OP
+#undef IS_OP
+#endif
+#define IS_OP(opt)                                       \
+        case opt:                                         \
+            op = Operators::opt;                          \
+            break;
+
+static bool TokenizeOperator(LinesStorage* text, LexisStorage* storage)
 {
     assert(text);
     assert(storage);
@@ -242,18 +251,15 @@ static bool TokenizeOperator(LinesStorage* text, SyntaxStorage* storage)
 
     switch(ch)
     {
-        case '+':
-            op = Operators::ADD;
-            break;
-        case '-':
-            op = Operators::SUB;
-            break;
-        case '*':
-            op = Operators::MUL;
-            break;
-        case '/':
-            op = Operators::DIV;
-            break;
+        IS_OP(ADD);
+        IS_OP(SUB);
+        IS_OP(MUL);
+        IS_OP(DIV);
+        IS_OP(DEG);
+        IS_OP(COMMA);
+        IS_OP(L_BRACKET);
+        IS_OP(R_BRACKET);
+        IS_OP(BREAK);
         default:
             return false;
     }
@@ -269,6 +275,37 @@ static bool TokenizeOperator(LinesStorage* text, SyntaxStorage* storage)
     return true;
 }
 
+#undef IS_OP
+
+//-----------------------------------------------------------------------------------------------------
+
+#ifdef COMPARE_KEYWORD
+#undef COMPARE_KEYWORD
+#endif
+#define COMPARE_KEYWORD(op)                     \
+    if (!strncmp(keyword, op, MAX_NAME_LEN))   \
+    {                                           \
+        return Operators::op;                       \
+    }                                           \
+    else
+
+
+Operators TranslateKeywordToOperator(const char* keyword)
+{
+    if (!keyword) return Operators::UNK;
+
+    COMPARE_KEYWORD(SIN);
+    COMPARE_KEYWORD(COS);
+    COMPARE_KEYWORD(ASSIGN);
+    COMPARE_KEYWORD(IF);
+    COMPARE_KEYWORD(WHILE);
+
+    /* else */ return Operators::UNK;
+
+}
+
+#undef COMPARE_KEYWORD
+
 //-----------------------------------------------------------------------------------------------------
 
 static void SkipSymbols(LinesStorage* text)
@@ -278,45 +315,72 @@ static void SkipSymbols(LinesStorage* text)
     bool need_to_skip = true;
 
     while (need_to_skip)
-    {
-        need_to_skip = false;
+        need_to_skip = SkipSpaces(text) || SkipComments(text);
 
-        size_t old_ptr = text->ptr;
-
-        SkipBufSpaces(text);
-
-        if (text->ptr != old_ptr)
-            need_to_skip = true;
-
-        int ch_1 = Bufgetc(text);
-        int ch_2 = Bufgetc(text);
-
-        if (ch_1 == '/' && ch_2 == '/')
-        {
-            int ch = Bufgetc(text);
-
-            while (ch != '\0' && ch != '\n')
-                ch = Bufgetc(text);
-
-            need_to_skip = true;
-        }
-        else
-        {
-            Bufungetc(text);
-            Bufungetc(text);
-        }
-    }
 }
 
 //-----------------------------------------------------------------------------------------------------
 
-static CharType GetCharType(LinesStorage* text)
+static bool SkipSpaces(LinesStorage* info)
+{
+    int ch       = 0;
+    bool skipped = false;
+
+    ch = Bufgetc(info);
+
+    while (ch == ' ' || ch == '\t')
+    {
+        ch = Bufgetc(info);
+        skipped = true;
+    }
+
+    Bufungetc(info);
+
+    return skipped;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static bool SkipComments(LinesStorage* text)
+{
+    int ch_1 = Bufgetc(text);
+    int ch_2 = Bufgetc(text);
+    bool skipped = false;
+
+    if (ch_1 == '/' && ch_2 == '/')
+    {
+        int ch = Bufgetc(text);
+
+        while (ch != '\0' && ch != '\n')
+            ch = Bufgetc(text);
+
+        skipped = true;
+    }
+    else
+    {
+        Bufungetc(text);
+        Bufungetc(text);
+    }
+
+    return skipped;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static CharType CheckBufCharType(LinesStorage* text)
 {
     assert(text);
 
     int ch = Bufgetc(text);
     Bufungetc(text);
 
+    return GetCharType(ch);
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static CharType GetCharType(const int ch)
+{
     if (isalpha(ch))
         return CharType::ALPHA;
 
@@ -329,24 +393,26 @@ static CharType GetCharType(LinesStorage* text)
         case '-':
         case '*':
         case '/':
-            return CharType::OPT;
-        case '=':
+        case '^':
         case '(':
         case ')':
-        case '{':
-        case '}':
-        case '[':
-        case ']':
-        case '_':
+        case '\n':
         case ',':
+            return CharType::OPT;
+        case '$':
+        case '=':
+        case '.':
+        case '?':
+        case '_':
+        case ':':
         case '&':
         case '|':
+        case '<':
+        case '>':
             return CharType::ADDITIONAL;
         default:
             return CharType::UNK;
     }
-
-
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -355,13 +421,28 @@ void NametableCtor(nametable_t* nametable)
 {
     assert(nametable);
 
-    char** names = (char**) calloc(DEFAULT_NAMES_AMT, sizeof(char*));
+    name_t* list = (name_t*) calloc(DEFAULT_NAMES_AMT, sizeof(name_t));
 
-    assert(names);
+    assert(list);
 
-    nametable->names    = names;
+    nametable->list     = list;
     nametable->size     = 0;
     nametable->capacity = DEFAULT_NAMES_AMT;
+
+    FillNametableWithKeywords(nametable);
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static void FillNametableWithKeywords(nametable_t* nametable)
+{
+    assert(nametable);
+
+    InsertKeywordInTable(nametable, IF);
+    InsertKeywordInTable(nametable, WHILE);
+    InsertKeywordInTable(nametable, SIN);
+    InsertKeywordInTable(nametable, COS);
+    InsertKeywordInTable(nametable, ASSIGN);
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -369,15 +450,15 @@ void NametableCtor(nametable_t* nametable)
 void NametableDtor(nametable_t* nametable)
 {
     assert(nametable);
-    assert(nametable->names);
+    assert(nametable->list);
 
     for (int i = 0; i < nametable->size; i++)
     {
-        if (nametable->names[i] != nullptr)
-            free(nametable->names[i]);
+        if (nametable->list[i].name != nullptr)
+            free(nametable->list[i].name);
     }
 
-    free(nametable->names);
+    free(nametable->list);
 
     nametable->size     = 0;
     nametable->capacity = 0;
@@ -388,12 +469,14 @@ void NametableDtor(nametable_t* nametable)
 void DumpNametable(FILE* fp, nametable_t* nametable)
 {
     assert(nametable);
-    assert(nametable->names);
+    assert(nametable->list);
+
+    fprintf(fp, "NAMETABLE SIZE > %d\n", nametable->size);
 
     for (int i = 0; i < nametable->size; i++)
     {
-        if (nametable->names[i] != nullptr)
-            fprintf(fp, "\"%s\"[%d]\n", nametable->names[i], i);
+        if (nametable->list[i].name != nullptr)
+            fprintf(fp, "\"%s\"[%d]\n", nametable->list[i].name, i);
     }
 }
 
@@ -402,21 +485,32 @@ void DumpNametable(FILE* fp, nametable_t* nametable)
 int InsertNameInTable(nametable_t* nametable, const char* name)
 {
     assert(nametable);
-    assert(nametable->names);
+    assert(nametable->list);
     assert(name);
 
     for (int i = 0; i < nametable->size; i++)
     {
-        if (!strncmp(name, nametable->names[i], MAX_NAME_LEN))
+        if (!strncmp(name, nametable->list[i].name, MAX_NAME_LEN))
             return i;
     }
-
     char* inserted_name = strndup(name, MAX_NAME_LEN);
     assert(inserted_name);
 
-    nametable->names[nametable->size] = inserted_name;
+    nametable->list[nametable->size].name = inserted_name;
+    nametable->list[nametable->size].type = TokenType::VAR;
 
     return nametable->size++;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static int InsertKeywordInTable(nametable_t* nametable, const char* name)
+{
+    int id = InsertNameInTable(nametable, name);
+
+    nametable->list[id].type = TokenType::KEYWORD;
+
+    return id;
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -436,14 +530,38 @@ void DumpToken(FILE* fp, token_t* token)
 {
     assert(token);
 
-    fprintf(fp, "TYPE: %d\n"
-                "INFO: %d\n"
-                "LINE: %d\n", token->type, token->info, token->line);
+    switch (token->type)
+    {
+        case TokenType::KEYWORD:
+            fprintf(fp, "TYPE > KEYWORD\n"
+                        "ID   > %d\n"
+                        "LINE > %d\n", token->info.var, token->line);
+            return;
+        case TokenType::NUM:
+            fprintf(fp, "TYPE > NUMBER\n"
+                        "VAL  > %d\n"
+                        "LINE > %d\n", token->info.val, token->line);
+            return;
+        case TokenType::OP:
+            fprintf(fp, "TYPE > OPERATOR ");
+            PrintOperator(fp, token->info.opt);
+            fprintf(fp, "\nLINE > %d\n", token->line);
+            return;
+        case TokenType::VAR:
+            fprintf(fp, "TYPE > VARIABLE\n"
+                        "ID   > %d\n"
+                        "LINE > %d\n", token->info.var, token->line);
+            return;
+        case TokenType::POISON:
+        default:
+            fprintf(fp, "POISONED TOKEN\n");
+            return;
+    }
 }
 
 //-----------------------------------------------------------------------------------------------------
 
-void SyntaxStorageCtor(SyntaxStorage* storage)
+void SyntaxStorageCtor(LexisStorage* storage)
 {
     assert(storage);
 
@@ -459,7 +577,7 @@ void SyntaxStorageCtor(SyntaxStorage* storage)
 
 //-----------------------------------------------------------------------------------------------------
 
-void SyntaxStorageDtor(SyntaxStorage* storage)
+void SyntaxStorageDtor(LexisStorage* storage)
 {
     assert(storage);
 
@@ -472,18 +590,16 @@ void SyntaxStorageDtor(SyntaxStorage* storage)
 
 //-----------------------------------------------------------------------------------------------------
 
-void DumpSyntaxStorage(FILE* fp, SyntaxStorage* storage)
+void DumpSyntaxStorage(FILE* fp, LexisStorage* storage)
 {
     assert(storage);
 
     for (int i = 0; i < storage->size; i++)
     {
-        fprintf(fp, "[%d]{\n");
+        fprintf(fp, "[%d]{\n", i);
         DumpToken(fp, &storage->tokens[i]);
         fprintf(fp, "}\n");
     }
-
-    fprintf(fp, "NAMETABLE\n");
 
     DumpNametable(fp, &storage->names);
 }

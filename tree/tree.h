@@ -53,21 +53,38 @@ int PrintTreeError(FILE* fp, const void* err, const char* func, const char* file
 // OPERATORS
 // ======================================================================
 
-#define DEF_OP(name, ...)      name,
-
 enum class Operators
 {
     ADD,
     SUB,
     MUL,
     DIV,
+    DEG,
+
+    L_BRACKET,
+    R_BRACKET,
+
+    COMMA,
+    BREAK,
 
     ASSIGN,
+    SIN,
+    COS,
+    IF,
+    WHILE,
 
     UNK
 };
 
-#undef DEF_OP
+static const char ADD       = '+';
+static const char SUB       = '-';
+static const char MUL       = '*';
+static const char DIV       = '/';
+static const char DEG       = '^';
+static const char L_BRACKET = '(';
+static const char R_BRACKET = ')';
+static const char COMMA     = ',';
+static const char BREAK     = '\n';
 
 // ======================================================================
 // NODES

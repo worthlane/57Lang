@@ -14,12 +14,29 @@ static const size_t MAX_NAME_LEN       = 64;
 // NAMETABLE
 // ======================================================================
 
+enum class TokenType
+{
+    OP,
+    KEYWORD,
+    VAR,
+    NUM,
+
+    POISON
+};
+
+struct name_t
+{
+    char*     name;
+
+    TokenType type;
+};
+
 struct nametable_t
 {
-    char** names;
+    name_t* list;
 
     size_t size;
-    size_t capacity;
+    size_t capacity;            // TODO пока не используется, переделать с реаллоком
 };
 
 void NametableCtor(nametable_t* nametable);
@@ -38,23 +55,17 @@ enum class Keywords
     IF,
     WHILE,
     ASSIGN,
-    L_BRACKET,
-    R_BRACKET,
-    L_BLOCK,
-    R_BLOCK,
     SIN,
     COS,
 };
 
 static const char* IF        = "57?";
-static const char* WHILE     = "57...";
-static const char* L_BRACKET = "5";
-static const char* R_BRACKET = "7";
-static const char* L_BLOCK   = "{";
-static const char* R_BLOCK   = "}";
-static const char* SIN       = "57$";
-static const char* COS       = "57£";
-static const char* ASSIGN    = "5=7";
+static const char* WHILE     = "1000_7";
+static const char* SIN       = "_57$0_";
+static const char* COS       = "_57$1_";
+static const char* ASSIGN    = ":=";
+
+Operators TranslateKeywordToOperator(const char* keyword);
 
 // ======================================================================
 // WORD DIGITS FORMAT
@@ -80,16 +91,6 @@ enum Digits
 // TOKEN
 // ======================================================================
 
-enum class TokenType
-{
-    OP,
-    KEYWORD,
-    VAR,
-    NUM,
-
-    POISON
-};
-
 union TokenInfo
 {
     int       val;
@@ -113,7 +114,7 @@ void DumpToken(FILE* fp, token_t* token);
 // SYNTAX STORAGE
 // ======================================================================
 
-struct SyntaxStorage
+struct LexisStorage
 {
     token_t*    tokens;
     size_t      size;
@@ -121,11 +122,11 @@ struct SyntaxStorage
     nametable_t names;
 };
 
-void SyntaxStorageCtor(SyntaxStorage* storage);
-void SyntaxStorageDtor(SyntaxStorage* storage);
+void SyntaxStorageCtor(LexisStorage* storage);
+void SyntaxStorageDtor(LexisStorage* storage);
 
-void DumpSyntaxStorage(FILE* fp, SyntaxStorage* storage);
+void DumpSyntaxStorage(FILE* fp, LexisStorage* storage);
 
-void Tokenize(LinesStorage* text, SyntaxStorage* storage, error_t* error);
+void Tokenize(LinesStorage* text, LexisStorage* storage, error_t* error);
 
 #endif

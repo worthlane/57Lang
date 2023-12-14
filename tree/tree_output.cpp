@@ -4,7 +4,6 @@
 #include "visual.h"
 #include "tree_output.h"
 
-static void PrintOperator(FILE* fp, const Operators sign);
 static void PrintNodeDataType(FILE* fp, const NodeType type);
 
 // ======================================================================
@@ -44,27 +43,50 @@ int NodeDump(FILE* fp, const void* dumping_node, const char* func, const char* f
 
 //-----------------------------------------------------------------------------------------------------
 
-static void PrintOperator(FILE* fp, const Operators sign)
+#ifdef CHECK_SHORT_OP
+#undef CHECK_SHORT_OP
+#endif
+#define CHECK_SHORT_OP(opt)             \
+    case (Operators::opt):        \
+        fprintf(fp, "%c", opt);   \
+        break;                    \
+
+#ifdef CHECK_LONG_OP
+#undef CHECK_LONG_OP
+#endif
+#define CHECK_LONG_OP(opt)        \
+    case (Operators::opt):        \
+        fprintf(fp, #opt);   \
+        break;                    \
+
+void PrintOperator(FILE* fp, const Operators sign)
 {
     switch (sign)
     {
-        case (Operators::ADD):
-            fprintf(fp, " + ");
+
+        CHECK_SHORT_OP(ADD);
+        CHECK_SHORT_OP(SUB);
+        CHECK_SHORT_OP(MUL);
+        CHECK_SHORT_OP(DIV);
+        CHECK_SHORT_OP(DEG);
+        CHECK_SHORT_OP(COMMA);
+        CHECK_SHORT_OP(L_BRACKET);
+        CHECK_SHORT_OP(R_BRACKET);
+
+        case (Operators::BREAK):
+            fprintf(fp, "[new string]");
             break;
-        case (Operators::DIV):
-            fprintf(fp, " / ");
-            break;
-        case (Operators::MUL):
-            fprintf(fp, " * ");
-            break;
-        case (Operators::SUB):
-            fprintf(fp, " - ");
-            break;
+
+        CHECK_LONG_OP(SIN);
+        CHECK_LONG_OP(COS);
+        CHECK_LONG_OP(ASSIGN);
 
         default:
             fprintf(fp, " undefined_operator ");
     }
 }
+
+#undef CHECK_SHORT_OP
 
 //-----------------------------------------------------------------------------------------------------
 
@@ -119,7 +141,6 @@ int TreeDump(FILE* fp, const void* nodes, const char* func, const char* file, co
 
     const tree_t* tree = (const tree_t*) nodes;
 
-    // TextTreeDump(fp, tree);
     DrawTreeGraph(tree);
 
     LOG_END();

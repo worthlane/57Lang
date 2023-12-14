@@ -1,6 +1,8 @@
 #include "tree.h"
 #include "visual.h"
 
+void PrintOperator(FILE* fp, const Operators sign);
+
 // ======================================================================
 // EXPRESSION TREE NODES
 // ======================================================================
