@@ -5,8 +5,9 @@
 #include "common/file_read.h"
 #include "tree/tree.h"
 #include "tree/tree_output.h"
-#include "analysis.h"
-#include "syntax_parser.h"
+#include "frontend/analysis.h"
+#include "frontend/syntax_parser.h"
+#include "frontend/frontend.h"
 
 int main(const int argc, const char* argv[])
 {
@@ -27,8 +28,9 @@ int main(const int argc, const char* argv[])
     SyntaxStorageCtor(&storage);
 
     Tokenize(&info, &storage, &error);
+    EXIT_IF_FRONTEND_ERROR;
 
-    DumpSyntaxStorage(stdout, &storage);
+    // DumpSyntaxStorage(stdout, &storage);
 
     TreeCtor(&tree, &error);
 
@@ -37,8 +39,7 @@ int main(const int argc, const char* argv[])
     syn.lexis = &storage;
 
     tree.root = GetAssign(&syn, &error);
+    EXIT_IF_FRONTEND_ERROR;
 
     DUMP_TREE(&tree);
-
-
 }

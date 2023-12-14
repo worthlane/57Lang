@@ -5,10 +5,10 @@
 
 #include "tree/tree.h"
 #include "common/file_read.h"
+#include "frontend.h"
 
 static const size_t DEFAULT_TOKENS_AMT = 500;
 static const size_t DEFAULT_NAMES_AMT  = 64;
-static const size_t MAX_NAME_LEN       = 64;
 
 // ======================================================================
 // NAMETABLE
@@ -45,47 +45,6 @@ void NametableDtor(nametable_t* nametable);
 void DumpNametable(FILE* fp, nametable_t* nametable);
 
 int InsertNameInTable(nametable_t* nametable, const char* name);
-
-// ======================================================================
-// KEYWORDS
-// ======================================================================
-
-enum class Keywords
-{
-    IF,
-    WHILE,
-    ASSIGN,
-    SIN,
-    COS,
-};
-
-static const char* IF        = "57?";
-static const char* WHILE     = "1000_7";
-static const char* SIN       = "_57$0_";
-static const char* COS       = "_57$1_";
-static const char* ASSIGN    = ":=";
-
-Operators TranslateKeywordToOperator(const char* keyword);
-
-// ======================================================================
-// WORD DIGITS FORMAT
-// ======================================================================
-
-enum Digits
-{
-    ZERO  = 0,
-    ONE   = 1,
-    TWO   = 2,
-    THREE = 3,
-    FOUR  = 4,
-    FIVE  = 5,
-    SIX   = 6,
-    SEVEN = 7,
-    EIGHT = 8,
-    NINE  = 9,
-
-    UNK = -1
-};
 
 // ======================================================================
 // TOKEN
@@ -127,6 +86,6 @@ void SyntaxStorageDtor(LexisStorage* storage);
 
 void DumpSyntaxStorage(FILE* fp, LexisStorage* storage);
 
-void Tokenize(LinesStorage* text, LexisStorage* storage, error_t* error);
+FrontendErrors Tokenize(LinesStorage* text, LexisStorage* storage, error_t* error);
 
 #endif

@@ -13,8 +13,14 @@
 #ifdef  INCREASE_PTR
 #undef  INCREASE_PTR
 #endif
-#define INCREASE_PTR    PrintLog("TOKEN[%d] GOT SUCCESSFULLY, READING NEXT ON LINE [%d]<br>\n",       \
-                                        storage->ptr++,                          __LINE__);
+#define INCREASE_PTR    PrintLog("GOT TOKEN[%d], READING NEXT ON LINE [%d]<br>\n",       \
+                                        storage->ptr++,                __LINE__);
+
+#ifdef  DECREASE_PTR
+#undef  DECREASE_PTR
+#endif
+#define DECREASE_PTR    PrintLog("RETURN FROM TOKEN[%d], READING PREVIOUS ON LINE [%d]<br>\n",       \
+                                                    storage->ptr++,                __LINE__);
 
 #ifdef  CUR_TOKEN
 #undef  CUR_TOKEN
@@ -33,10 +39,11 @@
 #define SYN_ASSERT(stat)                                                                            \
         if (!(stat))                                                                                \
         {                                                                                           \
-            error->code = (int) ERRORS::READ_FILE;                                   \
             LOG_START(__func__, __FILE__, __LINE__);                                                \
-            PrintLog("SYNTAX ASSERT\"" #stat "\"<br>\n"                                             \
-                     "IN FUNCTION %s FROM FILE \"%s\"(%d)<br>\n", __func__, __FILE__, __LINE__);    \
+            error->code = (int) FrontendErrors::INVALID_SYNTAX;                                     \
+            SetErrorData(error, "SYNTAX ASSERT\"" #stat "\"<br>\n"                                  \
+                                "IN FUNCTION %s FROM FILE \"%s\"(%d)<br>\n",                        \
+                                __func__, __FILE__, __LINE__);                                      \
             LOG_END();                                                                              \
             return nullptr;                                                                         \
         }

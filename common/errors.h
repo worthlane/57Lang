@@ -107,4 +107,6 @@ typedef struct ErrorInfo error_t;
  ************************************************************/
 int PrintError(FILE* fp, const void* error, const char* func, const char* file, const int line);
 
+int SetErrorData (error_t* error, const char *format, ...);
+
 #endif

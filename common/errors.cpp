@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #include "errors.h"
 #include "logs.h"
+
+static const size_t MAX_ERROR_LEN = 200;
 
 int PrintError(FILE* fp, const void* err, const char* func, const char* file, const int line)
 {
@@ -62,4 +65,26 @@ int PrintError(FILE* fp, const void* err, const char* func, const char* file, co
     }
 
     #pragma GCC diagnostic warning "-Wcast-qual"
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+int SetErrorData (error_t* error, const char *format, ...)
+{
+    assert(error);
+
+    char* data = (char*) calloc(MAX_ERROR_LEN, sizeof(char));
+
+    assert(data);
+
+    va_list arg;
+    int done;
+
+    va_start (arg, format);
+    done = vsnprintf(data, MAX_ERROR_LEN, format, arg);
+    va_end (arg);
+
+    error->data = data;
+
+    return done;
 }

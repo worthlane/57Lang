@@ -8,6 +8,10 @@
 #include "common/errors.h"
 #include "tree/tree_output.h"
 
+// ======================================================================
+// INPUT PARSE
+// ======================================================================
+
 enum class CharType
 {
     DIGIT,
@@ -25,22 +29,29 @@ static void     SkipSymbols(LinesStorage* text);
 static bool     SkipComments(LinesStorage* text);
 static bool     SkipSpaces(LinesStorage* text);
 
-static bool TokenizeOperator(LinesStorage* text, LexisStorage* storage);
-static bool TokenizeWord(LinesStorage* text, LexisStorage* storage);
-static bool TokenizeNumber(LinesStorage* text, LexisStorage* storage);
+static bool     CanCharBeInName(const int ch);
 
-static bool CanCharBeInWord(const int ch);
+static void     ReadName(LinesStorage* text, char* buffer);
+static Digits   ReadDigit(LinesStorage* text, char* buffer);
 
-static void ReadWord(LinesStorage* text, char* buffer);
+// ======================================================================
+// TOKENIZATOR
+// ======================================================================
 
-static Digits ReadDigit(LinesStorage* text, char* buffer);
+static FrontendErrors TokenizeOperator(LinesStorage* text, LexisStorage* storage, error_t* error);
+static FrontendErrors TokenizeWord(LinesStorage* text, LexisStorage* storage, error_t* error);
+static FrontendErrors TokenizeNumber(LinesStorage* text, LexisStorage* storage, error_t* error);
 
-static int InsertKeywordInTable(nametable_t* nametable, const char* name);
+// ======================================================================
+// NAMETABLES
+// ======================================================================
+
+static int  InsertKeywordInTable(nametable_t* nametable, const char* name);
 static void FillNametableWithKeywords(nametable_t* nametable);
 
 //-----------------------------------------------------------------------------------------------------
 
-void Tokenize(LinesStorage* text, LexisStorage* storage, error_t* error)
+FrontendErrors Tokenize(LinesStorage* text, LexisStorage* storage, error_t* error)
 {
     assert(text);
     assert(storage);
@@ -54,25 +65,26 @@ void Tokenize(LinesStorage* text, LexisStorage* storage, error_t* error)
 
         if (type == CharType::DIGIT || type == CharType::ADDITIONAL)
         {
-            bool success = TokenizeWord(text, storage);
-            assert(success);
+            TokenizeWord(text, storage, error);
+            RETURN_IF_FRONTEND_ERROR;
         }
         else if (type == CharType::OPT)
         {
-            bool success = TokenizeOperator(text, storage);
-            assert(success);
+            TokenizeOperator(text, storage, error);
+            RETURN_IF_FRONTEND_ERROR;
         }
         else if (type == CharType::ALPHA)
         {
-            bool success = TokenizeNumber(text, storage);
-            assert(success);
+            TokenizeNumber(text, storage, error);
+            RETURN_IF_FRONTEND_ERROR;
         }
         else
         {
-            PrintLog("ANALYSIS STOPPED. UNKNOWN SYMBOL IN LINE %d<br>\n", text->curr_line);
-            abort();
+            SET_FRONTEND_ERROR(INVALID_SYNTAX, "UNKNOWN SYMBOL IN LINE %d", text->curr_line);
         }
     }
+
+    return (FrontendErrors) error->code;
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -90,17 +102,18 @@ void Tokenize(LinesStorage* text, LexisStorage* storage, error_t* error)
             return true;                                        \
         }
 
-static bool TokenizeWord(LinesStorage* text, LexisStorage* storage)
+static FrontendErrors TokenizeWord(LinesStorage* text, LexisStorage* storage, error_t* error)
 {
     assert(text);
     assert(storage);
+    assert(error);
 
     size_t line = text->curr_line;
 
     token_t* token = &storage->tokens[storage->size];
 
     char buffer[MAX_NAME_LEN] = "";
-    ReadWord(text, buffer);
+    ReadName(text, buffer);
 
     int id = InsertNameInTable(&storage->names, buffer);
 
@@ -109,17 +122,18 @@ static bool TokenizeWord(LinesStorage* text, LexisStorage* storage)
     token->line     = line;
     storage->size++;
 
-    return true;
+    return (FrontendErrors) error->code;
 }
 
 #undef SAVE_IF_SAME
 
 //-----------------------------------------------------------------------------------------------------
 
-static bool TokenizeNumber(LinesStorage* text, LexisStorage* storage)
+static FrontendErrors TokenizeNumber(LinesStorage* text, LexisStorage* storage, error_t* error)
 {
     assert(text);
     assert(storage);
+    assert(error);
 
     size_t   line  = text->curr_line;
     token_t* token = &storage->tokens[storage->size];
@@ -128,14 +142,14 @@ static bool TokenizeNumber(LinesStorage* text, LexisStorage* storage)
 
     int val = ReadDigit(text, buffer);
     if (val == Digits::UNK)
-        return false;
+        SET_FRONTEND_ERROR(INVALID_SYNTAX, "CAN NOT READ NUMBER IN LINE %d", text->curr_line);
 
     int ch = Bufgetc(text);
     while (ch == '_')
     {
         int val_2 = ReadDigit(text, buffer);
         if (val_2 == Digits::UNK)
-            return false;
+            SET_FRONTEND_ERROR(INVALID_SYNTAX, "CAN NOT READ NUMBER IN LINE %d", text->curr_line);
 
         val = val * 10 + val_2;
 
@@ -148,15 +162,64 @@ static bool TokenizeNumber(LinesStorage* text, LexisStorage* storage)
     token->line     = line;
     storage->size++;
 
-    return true;
+    return (FrontendErrors) error->code;
 }
+
+//-----------------------------------------------------------------------------------------------------
+
+#ifdef IS_OP
+#undef IS_OP
+#endif
+#define IS_OP(opt)                                       \
+        case opt:                                         \
+            op = Operators::opt;                          \
+            break;
+
+static FrontendErrors TokenizeOperator(LinesStorage* text, LexisStorage* storage, error_t* error)
+{
+    assert(text);
+    assert(storage);
+    assert(error);
+
+    size_t line = text->curr_line;
+    int    ch   = Bufgetc(text);
+
+    Operators op = Operators::UNK;
+
+    switch(ch)
+    {
+        IS_OP(ADD);
+        IS_OP(SUB);
+        IS_OP(MUL);
+        IS_OP(DIV);
+        IS_OP(DEG);
+        IS_OP(COMMA);
+        IS_OP(L_BRACKET);
+        IS_OP(R_BRACKET);
+        IS_OP(BREAK);
+        default:
+            SET_FRONTEND_ERROR(UNKNOWN_OPERATOR, "%c IN LINE %d", ch, text->curr_line);
+    }
+
+    token_t* token = &storage->tokens[storage->size];
+
+    token->info.opt = op;
+    token->line     = line;
+    token->type     = TokenType::OP;
+
+    storage->size++;
+
+    return (FrontendErrors) error->code;
+}
+
+#undef IS_OP
 
 //-----------------------------------------------------------------------------------------------------
 
 #ifdef IS_DIGIT
 #undef IS_DIGIT
 #endif
-#define IS_DIGIT(digit)                                       \
+#define IS_DIGIT(digit)                                                \
         if (strncasecmp(buffer, #digit, MAX_NAME_LEN) == 0)            \
         {                                                       \
             return Digits::digit;                                        \
@@ -198,7 +261,7 @@ static Digits ReadDigit(LinesStorage* text, char* buffer)
 
 //-----------------------------------------------------------------------------------------------------
 
-static void ReadWord(LinesStorage* text, char* buffer)
+static void ReadName(LinesStorage* text, char* buffer)
 {
     assert(text);
     assert(buffer);
@@ -207,7 +270,7 @@ static void ReadWord(LinesStorage* text, char* buffer)
 
     int ch = Bufgetc(text);
 
-    while ((CanCharBeInWord(ch)) && i < MAX_NAME_LEN)
+    while ((CanCharBeInName(ch)) && i < MAX_NAME_LEN)
     {
         buffer[i++] = ch;
         ch = Bufgetc(text);
@@ -219,7 +282,7 @@ static void ReadWord(LinesStorage* text, char* buffer)
 
 //-----------------------------------------------------------------------------------------------------
 
-static bool CanCharBeInWord(const int ch)
+static bool CanCharBeInName(const int ch)
 {
     CharType type = GetCharType(ch);
 
@@ -228,83 +291,6 @@ static bool CanCharBeInWord(const int ch)
     else
         return false;
 }
-
-//-----------------------------------------------------------------------------------------------------
-
-#ifdef IS_OP
-#undef IS_OP
-#endif
-#define IS_OP(opt)                                       \
-        case opt:                                         \
-            op = Operators::opt;                          \
-            break;
-
-static bool TokenizeOperator(LinesStorage* text, LexisStorage* storage)
-{
-    assert(text);
-    assert(storage);
-
-    size_t line = text->curr_line;
-    int    ch   = Bufgetc(text);
-
-    Operators op = Operators::UNK;
-
-    switch(ch)
-    {
-        IS_OP(ADD);
-        IS_OP(SUB);
-        IS_OP(MUL);
-        IS_OP(DIV);
-        IS_OP(DEG);
-        IS_OP(COMMA);
-        IS_OP(L_BRACKET);
-        IS_OP(R_BRACKET);
-        IS_OP(BREAK);
-        default:
-            return false;
-    }
-
-    token_t* token = &storage->tokens[storage->size];
-
-    token->info.opt = op;
-    token->line     = line;
-    token->type     = TokenType::OP;
-
-    storage->size++;
-
-    return true;
-}
-
-#undef IS_OP
-
-//-----------------------------------------------------------------------------------------------------
-
-#ifdef COMPARE_KEYWORD
-#undef COMPARE_KEYWORD
-#endif
-#define COMPARE_KEYWORD(op)                     \
-    if (!strncmp(keyword, op, MAX_NAME_LEN))   \
-    {                                           \
-        return Operators::op;                       \
-    }                                           \
-    else
-
-
-Operators TranslateKeywordToOperator(const char* keyword)
-{
-    if (!keyword) return Operators::UNK;
-
-    COMPARE_KEYWORD(SIN);
-    COMPARE_KEYWORD(COS);
-    COMPARE_KEYWORD(ASSIGN);
-    COMPARE_KEYWORD(IF);
-    COMPARE_KEYWORD(WHILE);
-
-    /* else */ return Operators::UNK;
-
-}
-
-#undef COMPARE_KEYWORD
 
 //-----------------------------------------------------------------------------------------------------
 
