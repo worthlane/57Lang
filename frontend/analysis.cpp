@@ -96,7 +96,7 @@ FrontendErrors Tokenize(LinesStorage* text, LexisStorage* storage, error_t* erro
         if (strncmp(buffer, key, MAX_NAME_LEN) == 0)            \
         {                                                       \
             token->type         = TokenType::KEYWORD;           \
-            token->info.keyword = Keywords::key;                \
+            token->info.keyword = Operators::key;                \
             token->line         = line;                         \
             storage->size++;                                    \
             return true;                                        \

@@ -54,7 +54,7 @@ union TokenInfo
 {
     int       val;
     int       var;
-    Keywords  keyword;
+    Operators  keyword;  // TODO у меня был отдельный enum Keywords, который по факту повторял Operators, так будто централизованней система
     Operators opt;
 };
 

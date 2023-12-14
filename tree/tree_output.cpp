@@ -73,10 +73,7 @@ void PrintOperator(FILE* fp, const Operators sign)
         CHECK_SHORT_OP(L_BRACKET);
         CHECK_SHORT_OP(R_BRACKET);
 
-        case (Operators::BREAK):
-            fprintf(fp, "[new string]");
-            break;
-
+        CHECK_LONG_OP(BREAK);
         CHECK_LONG_OP(SIN);
         CHECK_LONG_OP(COS);
         CHECK_LONG_OP(ASSIGN);

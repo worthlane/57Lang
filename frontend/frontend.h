@@ -58,32 +58,6 @@ int PrintFrontendError(FILE* fp, const void* err, const char* func, const char* 
 // KEYWORDS
 // ======================================================================
 
-enum class Keywords
-{
-    IF,
-    ELSE,
-
-    WHILE,
-    ASSIGN,
-
-    GREATER,
-    GREATEREQUAL,
-    LESS,
-    LESSEQUAL,
-    EQUAL,
-    NOT_EQUAL,
-    AND,
-    OR,
-
-    OPEN_BLOCK,
-    CLOSE_BLOCK,
-
-    RETURN,
-
-    SIN,
-    COS,
-};
-
 static const char* IF           = "57?";
 static const char* ELSE         = "!57?";
 static const char* WHILE        = "1000_7";
@@ -100,7 +74,7 @@ static const char* NOT_EQUAL    = "!=";
 static const char* AND          = "&&";
 static const char* OR           = "||";
 static const char* OPEN_BLOCK   = "5";
-static const char* CLOSE_BLOCK  = "7";
+static const char* CLOSE_BLOCK  = ".57";
 
 
 Operators TranslateKeywordToOperator(const char* keyword);
