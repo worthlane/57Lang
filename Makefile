@@ -27,17 +27,20 @@ FRONTEND_SOURCES = analysis.cpp syntax_parser.cpp frontend.cpp
 FRONTEND_DIR = frontend
 COMMON_SOURCES = logs.cpp errors.cpp input_and_output.cpp file_read.cpp
 COMMON_DIR = common
+STACK_SOURCES = stack.cpp hash.cpp
+STACK_DIR = stack
 OBJECTS = $(SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 EXPRESSION_OBJECTS = $(EXPRESSION_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 COMMON_OBJECTS = $(COMMON_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 FRONTEND_OBJECTS = $(FRONTEND_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
+STACK_OBJECTS = $(STACK_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 DOXYFILE = Doxyfile
 DOXYBUILD = doxygen $(DOXYFILE)
 
 .PHONY: all
 all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS) $(EXPRESSION_OBJECTS) $(COMMON_OBJECTS) $(FRONTEND_OBJECTS)
+$(EXECUTABLE): $(OBJECTS) $(EXPRESSION_OBJECTS) $(COMMON_OBJECTS) $(FRONTEND_OBJECTS) $(STACK_OBJECTS)
 	$(CXX) $^ -o $@ $(CXXFLAGS)
 
 $(OBJECTS_DIR)/%.o : %.cpp
@@ -50,6 +53,9 @@ $(OBJECTS_DIR)/%.o : $(EXPRESSION_DIR)/%.cpp
 	$(CXX) -c $^ -o $@ $(CXXFLAGS)
 
 $(OBJECTS_DIR)/%.o : $(FRONTEND_DIR)/%.cpp
+	$(CXX) -c $^ -o $@ $(CXXFLAGS)
+
+$(OBJECTS_DIR)/%.o : $(STACK_DIR)/%.cpp
 	$(CXX) -c $^ -o $@ $(CXXFLAGS)
 
 .PHONY: doxybuild clean install test

@@ -15,7 +15,7 @@
     else
 
 
-Operators TranslateKeywordToOperator(const char* keyword)
+Operators TranslateKeywordToOperator(const char* keyword)  // TODO operators not like keyword
 {
     if (!keyword) return Operators::UNK;
 
@@ -24,6 +24,9 @@ Operators TranslateKeywordToOperator(const char* keyword)
     COMPARE_KEYWORD(ASSIGN);
     COMPARE_KEYWORD(IF);
     COMPARE_KEYWORD(END);
+    COMPARE_KEYWORD(INPUT);
+    COMPARE_KEYWORD(OUTPUT);
+    COMPARE_KEYWORD(INT);
     COMPARE_KEYWORD(ELSE);
     COMPARE_KEYWORD(CLOSE_BLOCK);
     COMPARE_KEYWORD(WHILE);
@@ -42,6 +45,21 @@ Operators TranslateKeywordToOperator(const char* keyword)
 }
 
 #undef COMPARE_KEYWORD
+
+//-----------------------------------------------------------------------------------------------------
+
+bool IsType(const Operators type)
+{
+    switch (type)
+    {
+        case (Operators::INT):
+            return true;
+        default:
+            return false;
+    }
+
+    return false;
+}
 
 //-----------------------------------------------------------------------------------------------------
 

@@ -60,8 +60,12 @@ int PrintFrontendError(FILE* fp, const void* err, const char* func, const char* 
 
 static const char* IF           = "57?";
 static const char* ELSE         = "!57?";
+
 static const char* INPUT        = "57>>";
 static const char* OUTPUT       = "57<<";
+
+static const char* INT          = "%";
+
 static const char* WHILE        = "1000_7";
 static const char* RETURN       = "~57";
 static const char* SIN          = "_$1#_";
@@ -78,8 +82,8 @@ static const char* OR           = "||";
 static const char* CLOSE_BLOCK  = ".57";
 static const char* END          = "@57@";
 
-
 Operators TranslateKeywordToOperator(const char* keyword);
+bool      IsType(const Operators type);
 
 // ======================================================================
 // WORD DIGITS FORMAT
@@ -98,7 +102,8 @@ enum Digits
     EIGHT = 8,
     NINE  = 9,
 
-    UNK = -1
+    UNK = -1        // TODO unknown
 };
+
 
 #endif

@@ -8,6 +8,7 @@
 #include "frontend/analysis.h"
 #include "frontend/syntax_parser.h"
 #include "frontend/frontend.h"
+#include "stack/stack.h"
 
 int main(const int argc, const char* argv[])
 {
@@ -15,6 +16,26 @@ int main(const int argc, const char* argv[])
 
     error_t error = {};
     tree_t tree = {};
+
+
+    Stack_t stk = {};
+    StackCtor(&stk);
+
+    int a = 0;
+
+    StackPush(&stk, a++);
+    StackPush(&stk, a++);
+    StackPush(&stk, a++);
+    StackPush(&stk, a++);
+    StackPush(&stk, a++);
+    StackPush(&stk, a++);
+    StackPush(&stk, a++);
+    StackPush(&stk, a++);
+    StackPush(&stk, a++);
+    StackPush(&stk, a++);
+
+    STACK_DUMP(&stk);
+
 
     const char* data_file = GetFileName(argc, argv, 1, "INPUT", &error);
     EXIT_IF_ERROR(&error);

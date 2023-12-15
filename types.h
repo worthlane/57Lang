@@ -2,6 +2,9 @@
 * \brief Contains all info about typed
 */
 
+#ifndef _TYPES_H_
+#define _TYPES_H_
+
 #include <math.h>
 #include <assert.h>
 
@@ -22,4 +25,6 @@ typedef int (*dump_f)(FILE*, const void*, const char*, const char*, const int);
 static const double POISON = 0xDEC0;
 
 #define PRINT_ELEM_T "%lld"
+
+#endif
 

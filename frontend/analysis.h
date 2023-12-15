@@ -28,6 +28,8 @@ struct name_t
 {
     char*     name;
 
+    // void*     func_table;
+
     TokenType type;
 };
 
