@@ -43,11 +43,62 @@ static FrontendErrors TokenizeWord(LinesStorage* text, LexisStorage* storage, er
 static FrontendErrors TokenizeNumber(LinesStorage* text, LexisStorage* storage, error_t* error);
 
 // ======================================================================
-// NAMETABLES
+// KEYWORDS
 // ======================================================================
 
 static int  InsertKeywordInTable(nametable_t* nametable, const char* name);
 static void FillNametableWithKeywords(nametable_t* nametable);
+static void MakeGlobalNametable(nametable_t* nametable);
+
+//-----------------------------------------------------------------------------------------------------
+
+static void MakeGlobalNametable(nametable_t* nametable)
+{
+    assert(nametable);
+
+    NametableCtor(nametable);
+
+    FillNametableWithKeywords(nametable);
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static int InsertKeywordInTable(nametable_t* nametable, const char* name)
+{
+    int id = InsertNameInTable(nametable, name);
+
+    nametable->list[id].type = TokenType::KEYWORD;
+
+    return id;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static void FillNametableWithKeywords(nametable_t* nametable)
+{
+    assert(nametable);
+
+    InsertKeywordInTable(nametable, IF);
+    InsertKeywordInTable(nametable, ELSE);
+    InsertKeywordInTable(nametable, CLOSE_BLOCK);
+    InsertKeywordInTable(nametable, WHILE);
+    InsertKeywordInTable(nametable, SIN);
+    InsertKeywordInTable(nametable, INPUT);
+    InsertKeywordInTable(nametable, OUTPUT);
+    InsertKeywordInTable(nametable, INT);
+    InsertKeywordInTable(nametable, COS);
+    InsertKeywordInTable(nametable, ASSIGN);
+    InsertKeywordInTable(nametable, END);
+    InsertKeywordInTable(nametable, AND);
+    InsertKeywordInTable(nametable, OR);
+    InsertKeywordInTable(nametable, LESS);
+    InsertKeywordInTable(nametable, LESSEQUAL);
+    InsertKeywordInTable(nametable, GREATER);
+    InsertKeywordInTable(nametable, NOT_EQUAL);
+    InsertKeywordInTable(nametable, GREATEREQUAL);
+    InsertKeywordInTable(nametable, EQUAL);
+    InsertKeywordInTable(nametable, RETURN);
+}
 
 //-----------------------------------------------------------------------------------------------------
 
@@ -407,119 +458,6 @@ static CharType GetCharType(const int ch)
 
 //-----------------------------------------------------------------------------------------------------
 
-void NametableCtor(nametable_t* nametable)
-{
-    assert(nametable);
-
-    name_t* list = (name_t*) calloc(DEFAULT_NAMES_AMT, sizeof(name_t));
-
-    assert(list);
-
-    nametable->list     = list;
-    nametable->size     = 0;
-    nametable->capacity = DEFAULT_NAMES_AMT;
-
-    FillNametableWithKeywords(nametable);
-}
-
-//-----------------------------------------------------------------------------------------------------
-
-static void FillNametableWithKeywords(nametable_t* nametable)
-{
-    assert(nametable);
-
-    InsertKeywordInTable(nametable, IF);
-    InsertKeywordInTable(nametable, ELSE);
-    InsertKeywordInTable(nametable, CLOSE_BLOCK);
-    InsertKeywordInTable(nametable, WHILE);
-    InsertKeywordInTable(nametable, SIN);
-    InsertKeywordInTable(nametable, INPUT);
-    InsertKeywordInTable(nametable, OUTPUT);
-    InsertKeywordInTable(nametable, INT);
-    InsertKeywordInTable(nametable, COS);
-    InsertKeywordInTable(nametable, ASSIGN);
-    InsertKeywordInTable(nametable, END);
-    InsertKeywordInTable(nametable, AND);
-    InsertKeywordInTable(nametable, OR);
-    InsertKeywordInTable(nametable, LESS);
-    InsertKeywordInTable(nametable, LESSEQUAL);
-    InsertKeywordInTable(nametable, GREATER);
-    InsertKeywordInTable(nametable, NOT_EQUAL);
-    InsertKeywordInTable(nametable, GREATEREQUAL);
-    InsertKeywordInTable(nametable, EQUAL);
-    InsertKeywordInTable(nametable, RETURN);
-}
-
-//-----------------------------------------------------------------------------------------------------
-
-void NametableDtor(nametable_t* nametable)
-{
-    assert(nametable);
-    assert(nametable->list);
-
-    for (int i = 0; i < nametable->size; i++)
-    {
-        if (nametable->list[i].name != nullptr)
-            free(nametable->list[i].name);
-    }
-
-    free(nametable->list);
-
-    nametable->size     = 0;
-    nametable->capacity = 0;
-}
-
-//-----------------------------------------------------------------------------------------------------
-
-void DumpNametable(FILE* fp, nametable_t* nametable)
-{
-    assert(nametable);
-    assert(nametable->list);
-
-    fprintf(fp, "NAMETABLE SIZE > %d\n", nametable->size);
-
-    for (int i = 0; i < nametable->size; i++)
-    {
-        if (nametable->list[i].name != nullptr)
-            fprintf(fp, "\"%s\"[%d]\n", nametable->list[i].name, i);
-    }
-}
-
-//-----------------------------------------------------------------------------------------------------
-
-int InsertNameInTable(nametable_t* nametable, const char* name)
-{
-    assert(nametable);
-    assert(nametable->list);
-    assert(name);
-
-    for (int i = 0; i < nametable->size; i++)
-    {
-        if (!strncmp(name, nametable->list[i].name, MAX_NAME_LEN))
-            return i;
-    }
-    char* inserted_name = strndup(name, MAX_NAME_LEN);
-    assert(inserted_name);
-
-    nametable->list[nametable->size].name = inserted_name;
-    nametable->list[nametable->size].type = TokenType::VAR;
-
-    return nametable->size++;
-}
-
-//-----------------------------------------------------------------------------------------------------
-
-static int InsertKeywordInTable(nametable_t* nametable, const char* name)
-{
-    int id = InsertNameInTable(nametable, name);
-
-    nametable->list[id].type = TokenType::KEYWORD;
-
-    return id;
-}
-
-//-----------------------------------------------------------------------------------------------------
-
 void FillToken(token_t* token, const TokenType type, const TokenInfo info, const size_t line)
 {
     assert(token);
@@ -584,7 +522,7 @@ void SyntaxStorageCtor(LexisStorage* storage)
     storage->tokens = tokens;
     storage->size   = 0;
 
-    NametableCtor(&storage->names);
+    MakeGlobalNametable(&storage->names);
 }
 
 //-----------------------------------------------------------------------------------------------------

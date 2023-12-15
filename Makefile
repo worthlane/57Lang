@@ -27,7 +27,7 @@ FRONTEND_SOURCES = analysis.cpp syntax_parser.cpp frontend.cpp
 FRONTEND_DIR = frontend
 COMMON_SOURCES = logs.cpp errors.cpp input_and_output.cpp file_read.cpp
 COMMON_DIR = common
-STACK_SOURCES = stack.cpp hash.cpp
+STACK_SOURCES = stack.cpp hash.cpp nametable.cpp
 STACK_DIR = stack
 OBJECTS = $(SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 EXPRESSION_OBJECTS = $(EXPRESSION_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)

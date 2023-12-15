@@ -642,7 +642,7 @@ static bool PoisonVerify(Stack_t* stk)
 bool Equal(const elem_t a, const elem_t b)
 {
 
-    if (isnan(a) && isnan(b))
+    if (a == b)
         return true;
 
     // const elem_t EPSILON = 1e-5;

@@ -6,8 +6,6 @@
         8 :=six
     .57
 
-    5 := 1000-7
-
     1000_7 (seven_eight&&two || one)
         228 := three
     .57

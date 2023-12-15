@@ -5,6 +5,7 @@
 
 #include "common/errors.h"
 #include "common/logs.h"
+#include "nametable.h"
 #include "types.h"
 
 /*! \file
@@ -55,8 +56,10 @@
 #endif
 #define STACK_DUMP(stk)     LogDump(StackDump, stk, __func__, __FILE__, __LINE__)
 
+typedef nametable_t* elem_t;
+
 static const size_t MIN_CAPACITY = 16;
-static const elem_t STK_POISON       = -123456789;
+static const elem_t STK_POISON   = nullptr;
 
 /// stack type
 typedef struct Stack Stack_t;

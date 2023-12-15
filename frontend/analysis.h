@@ -6,47 +6,9 @@
 #include "tree/tree.h"
 #include "common/file_read.h"
 #include "frontend.h"
+#include "stack/nametable.h"
 
 static const size_t DEFAULT_TOKENS_AMT = 500;
-static const size_t DEFAULT_NAMES_AMT  = 64;
-
-// ======================================================================
-// NAMETABLE
-// ======================================================================
-
-enum class TokenType
-{
-    OP,
-    KEYWORD,
-    VAR,
-    NUM,
-
-    POISON
-};
-
-struct name_t
-{
-    char*     name;
-
-    // void*     func_table;
-
-    TokenType type;
-};
-
-struct nametable_t
-{
-    name_t* list;
-
-    size_t size;
-    size_t capacity;            // TODO пока не используется, переделать с реаллоком
-};
-
-void NametableCtor(nametable_t* nametable);
-void NametableDtor(nametable_t* nametable);
-
-void DumpNametable(FILE* fp, nametable_t* nametable);
-
-int InsertNameInTable(nametable_t* nametable, const char* name);
 
 // ======================================================================
 // TOKEN

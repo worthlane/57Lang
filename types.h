@@ -8,8 +8,6 @@
 #include <math.h>
 #include <assert.h>
 
-/// stack element type
-typedef long long elem_t;
 /// stack type
 typedef struct Stack Stack_t;
 
@@ -24,7 +22,7 @@ typedef int (*dump_f)(FILE*, const void*, const char*, const char*, const int);
 
 static const double POISON = 0xDEC0;
 
-#define PRINT_ELEM_T "%lld"
+#define PRINT_ELEM_T "[%p]"
 
 #endif
 

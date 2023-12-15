@@ -21,18 +21,14 @@ int main(const int argc, const char* argv[])
     Stack_t stk = {};
     StackCtor(&stk);
 
-    int a = 0;
+    nametable_t names = {};
+    NametableCtor(&names);
 
-    StackPush(&stk, a++);
-    StackPush(&stk, a++);
-    StackPush(&stk, a++);
-    StackPush(&stk, a++);
-    StackPush(&stk, a++);
-    StackPush(&stk, a++);
-    StackPush(&stk, a++);
-    StackPush(&stk, a++);
-    StackPush(&stk, a++);
-    StackPush(&stk, a++);
+    StackPush(&stk, &names);
+    StackPush(&stk, &names);
+    StackPush(&stk, &names);
+    StackPush(&stk, &names);
+    StackPush(&stk, &names);
 
     STACK_DUMP(&stk);
 

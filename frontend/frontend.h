@@ -2,8 +2,7 @@
 #define __FRONTEND_H_
 
 #include "tree/tree.h"
-
-static const size_t MAX_NAME_LEN = 64;
+#include "stack/nametable.h"
 
 // ======================================================================
 // ERRORS
