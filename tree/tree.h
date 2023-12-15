@@ -64,9 +64,6 @@ enum class Operators
     L_BRACKET,
     R_BRACKET,
 
-    COMMA,
-    BREAK,
-
     ASSIGN,
     SIN,
     COS,
@@ -83,11 +80,22 @@ enum class Operators
     AND,
     OR,
 
-    CLOSE_BLOCK,
+    INPUT,
+    OUTPUT,
 
+    INT,
+
+    COMMA,
+    BREAK,
+    CLOSE_BLOCK,
     RETURN,
 
     END,
+
+    // FICTIVE OPERATORS:
+
+    TYPE,
+    NEW_FUNC,
 
     UNK
 };

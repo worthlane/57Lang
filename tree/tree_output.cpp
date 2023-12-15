@@ -74,6 +74,9 @@ void PrintOperator(FILE* fp, const Operators sign)
         CHECK_SHORT_OP(R_BRACKET);
 
         CHECK_LONG_OP(BREAK);
+        CHECK_LONG_OP(INPUT);
+        CHECK_LONG_OP(INT);
+        CHECK_LONG_OP(OUTPUT);
         CHECK_LONG_OP(SIN);
         CHECK_LONG_OP(COS);
         CHECK_LONG_OP(ASSIGN);
