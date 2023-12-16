@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#include "tree/tree.h"
+
 static const size_t DEFAULT_NAMES_AMT  = 64;
 static const size_t MAX_NAME_LEN       = 64;
 
