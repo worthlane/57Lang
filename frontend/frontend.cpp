@@ -39,6 +39,7 @@ Operators TranslateKeywordToOperator(const char* keyword)  // TODO operators not
     COMPARE_KEYWORD(RETURN);
     COMPARE_KEYWORD(AND);
     COMPARE_KEYWORD(OR);
+    COMPARE_KEYWORD(FUNC_WALL);
 
     /* else */ return Operators::UNK;
 

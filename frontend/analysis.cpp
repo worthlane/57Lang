@@ -82,6 +82,7 @@ static void FillNametableWithKeywords(nametable_t* nametable)
     InsertKeywordInTable(nametable, ELSE);
     InsertKeywordInTable(nametable, CLOSE_BLOCK);
     InsertKeywordInTable(nametable, WHILE);
+    InsertKeywordInTable(nametable, FUNC_WALL);
     InsertKeywordInTable(nametable, SIN);
     InsertKeywordInTable(nametable, INPUT);
     InsertKeywordInTable(nametable, OUTPUT);

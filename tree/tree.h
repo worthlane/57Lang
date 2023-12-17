@@ -61,9 +61,6 @@ enum class Operators
     DIV,
     DEG,
 
-    L_BRACKET,
-    R_BRACKET,
-
     ASSIGN,
     SIN,
     COS,
@@ -85,17 +82,24 @@ enum class Operators
 
     INT,
 
+    L_BRACKET,
+    R_BRACKET,
     COMMA,
     BREAK,
     CLOSE_BLOCK,
+    FUNC_WALL,
+
     RETURN,
 
     END,
 
     // FICTIVE OPERATORS:
 
+    FUNC_CALL,
+
     TYPE,
     NEW_FUNC,
+    FUNC,
 
     UNK
 };

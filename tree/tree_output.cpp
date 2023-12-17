@@ -43,18 +43,10 @@ int NodeDump(FILE* fp, const void* dumping_node, const char* func, const char* f
 
 //-----------------------------------------------------------------------------------------------------
 
-#ifdef CHECK_SHORT_OP
-#undef CHECK_SHORT_OP
+#ifdef CHECK_OP
+#undef CHECK_OP
 #endif
-#define CHECK_SHORT_OP(opt)             \
-    case (Operators::opt):        \
-        fprintf(fp, "%c", opt);   \
-        break;                    \
-
-#ifdef CHECK_LONG_OP
-#undef CHECK_LONG_OP
-#endif
-#define CHECK_LONG_OP(opt)        \
+#define CHECK_OP(opt)        \
     case (Operators::opt):        \
         fprintf(fp, #opt);   \
         break;                    \
@@ -64,36 +56,41 @@ void PrintOperator(FILE* fp, const Operators sign)
     switch (sign)
     {
 
-        CHECK_SHORT_OP(ADD);
-        CHECK_SHORT_OP(SUB);
-        CHECK_SHORT_OP(MUL);
-        CHECK_SHORT_OP(DIV);
-        CHECK_SHORT_OP(DEG);
-        CHECK_SHORT_OP(COMMA);
-        CHECK_SHORT_OP(L_BRACKET);
-        CHECK_SHORT_OP(R_BRACKET);
+        CHECK_OP(ADD);
+        CHECK_OP(SUB);
+        CHECK_OP(MUL);
+        CHECK_OP(DIV);
+        CHECK_OP(DEG);
+        CHECK_OP(COMMA);
+        CHECK_OP(L_BRACKET);
+        CHECK_OP(R_BRACKET);
 
-        CHECK_LONG_OP(BREAK);
-        CHECK_LONG_OP(INPUT);
-        CHECK_LONG_OP(INT);
-        CHECK_LONG_OP(OUTPUT);
-        CHECK_LONG_OP(SIN);
-        CHECK_LONG_OP(COS);
-        CHECK_LONG_OP(ASSIGN);
-        CHECK_LONG_OP(IF);
-        CHECK_LONG_OP(WHILE);
-        CHECK_LONG_OP(END);
-        CHECK_LONG_OP(AND);
-        CHECK_LONG_OP(OR);
-        CHECK_LONG_OP(GREATER);
-        CHECK_LONG_OP(GREATEREQUAL);
-        CHECK_LONG_OP(LESSEQUAL);
-        CHECK_LONG_OP(LESS);
-        CHECK_LONG_OP(EQUAL);
-        CHECK_LONG_OP(NOT_EQUAL);
-        CHECK_LONG_OP(RETURN);
-        CHECK_LONG_OP(ELSE);
-        CHECK_LONG_OP(CLOSE_BLOCK);
+        CHECK_OP(BREAK);
+        CHECK_OP(INPUT);
+        CHECK_OP(INT);
+        CHECK_OP(OUTPUT);
+        CHECK_OP(SIN);
+        CHECK_OP(COS);
+        CHECK_OP(ASSIGN);
+        CHECK_OP(IF);
+        CHECK_OP(WHILE);
+        CHECK_OP(FUNC_WALL);
+        CHECK_OP(END);
+        CHECK_OP(AND);
+        CHECK_OP(OR);
+        CHECK_OP(GREATER);
+        CHECK_OP(GREATEREQUAL);
+        CHECK_OP(LESSEQUAL);
+        CHECK_OP(LESS);
+        CHECK_OP(EQUAL);
+        CHECK_OP(NOT_EQUAL);
+        CHECK_OP(RETURN);
+        CHECK_OP(ELSE);
+        CHECK_OP(CLOSE_BLOCK);
+        CHECK_OP(TYPE);
+        CHECK_OP(FUNC);
+        CHECK_OP(NEW_FUNC);
+        CHECK_OP(FUNC_CALL);
 
         default:
             fprintf(fp, " undefined_operator ");

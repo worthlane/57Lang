@@ -63,12 +63,13 @@ static const char* ELSE         = "!57?";
 static const char* INPUT        = "57>>";
 static const char* OUTPUT       = "57<<";
 
-static const char* INT          = "%";
+static const char* INT          = "57::";
 
+// static const char* MAIN         = "_0_";
 static const char* WHILE        = "1000_7";
 static const char* RETURN       = "~57";
-static const char* SIN          = "_$1#_";
-static const char* COS          = "_<0$_";
+static const char* SIN          = "$1#";
+static const char* COS          = "<0$";
 static const char* ASSIGN       = ":=";
 static const char* GREATER      = ">";
 static const char* GREATEREQUAL = ">=";
@@ -80,6 +81,8 @@ static const char* AND          = "&&";
 static const char* OR           = "||";
 static const char* CLOSE_BLOCK  = ".57";
 static const char* END          = "@57@";
+
+static const char* FUNC_WALL    = "##################################################";
 
 Operators TranslateKeywordToOperator(const char* keyword);
 bool      IsType(const Operators type);

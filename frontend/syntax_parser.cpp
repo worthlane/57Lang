@@ -27,6 +27,11 @@
 #endif
 #define CUR_TOKEN       storage->lexis->tokens[CUR_PTR]
 
+#ifdef  NEXT_TOKEN
+#undef  NEXT_TOKEN
+#endif
+#define NEXT_TOKEN       storage->lexis->tokens[CUR_PTR + 1]
+
 #ifdef  SKIP_BREAKS
 #undef  SKIP_BREAKS
 #endif
@@ -100,15 +105,19 @@
                 return nullptr;                                 \
         } while (false)
 
-// GetInit          ::= TYPE L_BRACKET VAR R_BRACKET ASSIGN Expression
+// CallVars         ::= L_BRACKET Expr { [,] Expr }* R_BRACKET
+// CallFunc         ::= Name CallVars
 
-
-
-// Program          ::= Block END
+// Program          ::= DefFunc Break {DefFunc Break}* END
+// DefFunc          ::= Type Var L_BRACKET FuncVars R_BRACKET {BREAK}* FUNC_WALL SubProgram FUNC_WALL
+// FuncVars         ::= OneFuncVar { [,] OneFuncVar }*
+// OneFuncVar       ::= Type L_BRACKET Var R_BRACKET
+// SubProgram       ::= Block
 // WhileSection     ::= WHILE L_BRACKET Expression R_BRACKET {BREAK}* Block CLOSE_BLOCK
 // IfSection        ::= IF    L_BRACKET Expression R_BRACKET {BREAK}* Block CLOSE_BLOCK
-// Block            ::= {Line}*
-// Line             ::= {IfSection | WhileSection | Return | Assignment }*
+// Block            ::= {Line Break}*
+// Line             ::= {IfSection | WhileSection | Return | Assignment | Init }*
+// Init             ::= TYPE L_BRACKET Assignment R_BRACKET
 // Assignment       ::= Var ASSIGN Expression
 // Return           ::= RETURN Expression
 // Expression       ::= AndOperand   { [OR] AndOperand }*
@@ -117,7 +126,7 @@
 // Summ             ::= Term         { [ADD SUB] Term }*
 // Term             ::= Degree       { [MUL DIV] Degree }*
 // Degree           ::= Trigonometry { [^] Trigonometry }*
-// Trigonometry     ::=              { [SIN COS] Brackets }*
+// Trigonometry     ::=              { [SIN COS CallFunc] Brackets }*
 // Brackets         ::= L_BRACKET Expression R_BRACKET | Component
 // Component        ::= [+ -] (Var | Num)
 // Type             ::= TYPE
@@ -125,12 +134,18 @@
 // Var              ::= VAR
 // Num              ::= NUM
 
+static Node* CallFunc(SyntaxStorage* storage, error_t* error);
+static Node* CallVars(SyntaxStorage* storage, error_t* error);
 static Node* GetProgram(SyntaxStorage* storage, error_t* error);
-
+static Node* DefFunc(SyntaxStorage* storage, error_t* error);
+static Node* GetSubProgram(SyntaxStorage* storage, error_t* error);
+static Node* GetOneFuncVar(SyntaxStorage* storage, error_t* error);
+static Node* GetFuncVars(SyntaxStorage* storage, error_t* error);
 static Node* GetVar(SyntaxStorage* storage, error_t* error);
 static Node* GetNum(SyntaxStorage* storage, error_t* error);
 static Node* GetBreak(SyntaxStorage* storage, error_t* error);
 static Node* GetType(SyntaxStorage* storage, error_t* error);
+static Node* GetInit(SyntaxStorage* storage, error_t* error);
 static Node* GetBlock(SyntaxStorage* storage, error_t* error);
 static Node* GetLine(SyntaxStorage* storage, error_t* error);
 static Node* GetReturn(SyntaxStorage* storage, error_t* error);
@@ -160,6 +175,181 @@ void GetTreeFromTokens(LexisStorage* lexis, tree_t* tree, error_t* error)
     syn.lexis = lexis;
 
     tree->root = GetProgram(&syn, error);
+}
+
+// -------------------------------------------------------------
+
+static Node* GetProgram(SyntaxStorage* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    Node* funcs = nullptr;
+
+    SYN_ASSERT(IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == NodeType::OP);
+
+    funcs = DefFunc(storage, error);
+    NULL_IF_ERR;
+
+    GetBreak(storage, error);
+    NULL_IF_ERR;
+
+    SKIP_BREAKS;
+
+    while (IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == NodeType::OP)
+    {
+        Node* func = DefFunc(storage, error);
+        NULL_IF_ERR;
+
+        GetBreak(storage, error);
+        NULL_IF_ERR;
+
+        SKIP_BREAKS;
+
+        funcs = MakeNode(NodeType::OP, {.opt = Operators::NEW_FUNC}, funcs, func);
+    }
+
+    SYN_ASSERT(CUR_TOKEN.info.opt == Operators::END && CUR_TOKEN.type == NodeType::OP);
+
+    return funcs;
+}
+
+// -------------------------------------------------------------
+
+static Node* DefFunc(SyntaxStorage* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    Node* type = GetType(storage, error);
+    NULL_IF_ERR;
+
+    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::L_BRACKET);
+
+    Node* name = GetVar(storage, error);    // TODO make name
+    NULL_IF_ERR;
+
+    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::L_BRACKET);
+
+    Node* vars = GetFuncVars(storage, error);
+    NULL_IF_ERR;
+
+    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::R_BRACKET);
+    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::R_BRACKET);
+
+    SKIP_BREAKS;
+
+    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::FUNC_WALL);
+
+    Node* action = GetSubProgram(storage, error);
+
+    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::FUNC_WALL);
+
+    ConnectNodes(name, vars, action);
+
+    Node* func = MakeNode(NodeType::OP, {.opt = Operators::FUNC}, name);
+
+    Node* fictive_type = MakeNode(NodeType::OP, {.opt = Operators::TYPE}, type, func);
+
+    return fictive_type;
+}
+
+// -------------------------------------------------------------
+
+static Node* CallFunc(SyntaxStorage* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    Node* name = GetVar(storage, error);    // TODO make name
+    NULL_IF_ERR;
+
+    Node* vars = CallVars(storage, error);
+    NULL_IF_ERR;
+
+    Node* fictive_node = MakeNode(NodeType::OP, {.opt = Operators::FUNC_CALL}, name, vars);
+
+    return fictive_node;
+}
+
+// -------------------------------------------------------------
+
+static Node* GetOneFuncVar(SyntaxStorage* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    Node* type = GetType(storage, error);
+    NULL_IF_ERR;
+
+    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::L_BRACKET);
+
+    Node* var = GetVar(storage, error);
+    NULL_IF_ERR;
+
+    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::R_BRACKET);
+
+    Node* fictive_connect = MakeNode(NodeType::OP, {.opt = Operators::TYPE}, type, var);
+
+    return fictive_connect;
+}
+
+// -------------------------------------------------------------
+
+static Node* GetFuncVars(SyntaxStorage* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    Node* vars = nullptr;
+
+    if (!(IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == NodeType::OP)) { return nullptr; }
+
+    vars = GetOneFuncVar(storage, error);
+    NULL_IF_ERR;
+
+    while (CUR_TOKEN.info.opt == Operators::COMMA && CUR_TOKEN.type == NodeType::OP)
+    {
+        INCREASE_PTR;
+
+        Node* var = GetOneFuncVar(storage, error);
+        NULL_IF_ERR;
+
+        vars = MakeNode(NodeType::OP, {.opt = Operators::COMMA}, vars, var);
+    }
+
+    return vars;
+}
+
+// -------------------------------------------------------------
+
+static Node* CallVars(SyntaxStorage* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    Node* vars = nullptr;
+
+    CONSUME(CUR_TOKEN.info.opt == Operators::L_BRACKET && CUR_TOKEN.type == NodeType::OP);
+
+    if (CUR_TOKEN.info.opt == Operators::R_BRACKET && CUR_TOKEN.type == NodeType::OP) { return nullptr; }
+
+    vars = GetExpression(storage, error);
+    NULL_IF_ERR;
+
+    while (CUR_TOKEN.info.opt == Operators::COMMA && CUR_TOKEN.type == NodeType::OP)
+    {
+        INCREASE_PTR;
+
+        Node* var = GetExpression(storage, error);
+        NULL_IF_ERR;
+
+        vars = MakeNode(NodeType::OP, {.opt = Operators::COMMA}, vars, var);
+    }
+
+    CONSUME(CUR_TOKEN.info.opt == Operators::R_BRACKET && CUR_TOKEN.type == NodeType::OP);
+
+    return vars;
 }
 
 // -------------------------------------------------------------
@@ -217,20 +407,27 @@ static Node* GetNum(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-/*static Node* GetInit(SyntaxStorage* storage, error_t* error)
+static Node* GetInit(SyntaxStorage* storage, error_t* error)
 {
     Node* type = GetType(storage, error);
-    if (!error->code) return nullptr;
+    NULL_IF_ERR;
 
-    Node* fictive_connect = MakeNode(NodeType::OP, {.opt = Operators::TYPE});
+    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::L_BRACKET);
 
+    Node* assign = GetAssignment(storage, error);
+    NULL_IF_ERR;
 
-}*/
+    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::R_BRACKET);
+
+    Node* fictive_connect = MakeNode(NodeType::OP, {.opt = Operators::TYPE}, type, assign);
+
+    return fictive_connect;
+}
 
 
 // -------------------------------------------------------------
 
-static Node* GetProgram(SyntaxStorage* storage, error_t* error)
+static Node* GetSubProgram(SyntaxStorage* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -239,8 +436,6 @@ static Node* GetProgram(SyntaxStorage* storage, error_t* error)
 
     Node* result = GetBlock(storage, error);
     NULL_IF_ERR;
-
-    SYN_ASSERT(CUR_TOKEN.info.opt == Operators::END && CUR_TOKEN.type == NodeType::OP);
 
     return result;
 }
@@ -294,6 +489,10 @@ static Node* GetLine(SyntaxStorage* storage, error_t* error)
     else if (CUR_TOKEN.info.opt == Operators::RETURN && CUR_TOKEN.type == NodeType::OP)
     {
         val = GetReturn(storage, error);
+    }
+    else if (IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == NodeType::OP)
+    {
+        val = GetInit(storage, error);
     }
     else if (CUR_TOKEN.type == NodeType::VAR)
     {
@@ -655,7 +854,17 @@ static Node* GetComponent(SyntaxStorage* storage, error_t* error)
         if (CUR_TOKEN.type == NodeType::NUM)
             num = GetNum(storage, error);
         else
-            num = GetVar(storage, error);
+        {
+            if (NEXT_TOKEN.type == NodeType::OP && NEXT_TOKEN.info.opt == Operators::L_BRACKET)
+            {
+                Node* call_func = CallFunc(storage, error);
+                NULL_IF_ERR;
+
+                return call_func;
+            }
+            else
+                num = GetVar(storage, error);
+        }
 
         NULL_IF_ERR;
 
@@ -670,7 +879,17 @@ static Node* GetComponent(SyntaxStorage* storage, error_t* error)
         if (CUR_TOKEN.type == NodeType::NUM)
             num = GetNum(storage, error);
         else
-            num = GetVar(storage, error);
+        {
+            if (NEXT_TOKEN.type == NodeType::OP && NEXT_TOKEN.info.opt == Operators::L_BRACKET)
+            {
+                Node* call_func = CallFunc(storage, error);
+                NULL_IF_ERR;
+
+                return call_func;
+            }
+            else
+                num = GetVar(storage, error);
+        }
 
         NULL_IF_ERR;
 
