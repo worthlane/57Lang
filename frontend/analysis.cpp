@@ -67,7 +67,7 @@ static int InsertKeywordInTable(nametable_t* nametable, const char* name)
 {
     int id = InsertNameInTable(nametable, name);
 
-    nametable->list[id].type = TokenType::KEYWORD;
+    nametable->list[id].type = NodeType::KEYWORD;
 
     return id;
 }
@@ -140,19 +140,6 @@ FrontendErrors Tokenize(LinesStorage* text, LexisStorage* storage, error_t* erro
 
 //-----------------------------------------------------------------------------------------------------
 
-#ifdef SAVE_IF_SAME
-#undef SAVE_IF_SAME
-#endif
-#define SAVE_IF_SAME(key)                                       \
-        if (strncmp(buffer, key, MAX_NAME_LEN) == 0)            \
-        {                                                       \
-            token->type         = TokenType::KEYWORD;           \
-            token->info.keyword = Operators::key;                \
-            token->line         = line;                         \
-            storage->size++;                                    \
-            return true;                                        \
-        }
-
 static FrontendErrors TokenizeWord(LinesStorage* text, LexisStorage* storage, error_t* error)
 {
     assert(text);
@@ -168,15 +155,23 @@ static FrontendErrors TokenizeWord(LinesStorage* text, LexisStorage* storage, er
 
     int id = InsertNameInTable(&storage->names, buffer);
 
-    token->type     = storage->names.list[id].type;
-    token->info.var = id;
-    token->line     = line;
+    if (storage->names.list[id].type == NodeType::KEYWORD)
+    {
+        Operators op    = TranslateKeywordToOperator(storage->names.list[id].name);
+        token->type     = NodeType::OP;
+        token->info.opt = op;
+    }
+    else
+    {
+        token->type     = storage->names.list[id].type;
+        token->info.var = id;
+    }
+
+    token->line = line;
     storage->size++;
 
     return (FrontendErrors) error->code;
 }
-
-#undef SAVE_IF_SAME
 
 //-----------------------------------------------------------------------------------------------------
 
@@ -208,7 +203,7 @@ static FrontendErrors TokenizeNumber(LinesStorage* text, LexisStorage* storage, 
     }
     Bufungetc(text);
 
-    token->type     = TokenType::NUM;
+    token->type     = NodeType::NUM;
     token->info.val = val;
     token->line     = line;
     storage->size++;
@@ -256,7 +251,7 @@ static FrontendErrors TokenizeOperator(LinesStorage* text, LexisStorage* storage
 
     token->info.opt = op;
     token->line     = line;
-    token->type     = TokenType::OP;
+    token->type     = NodeType::OP;
 
     storage->size++;
 
@@ -458,7 +453,7 @@ static CharType GetCharType(const int ch)
 
 //-----------------------------------------------------------------------------------------------------
 
-void FillToken(token_t* token, const TokenType type, const TokenInfo info, const size_t line)
+void FillToken(token_t* token, const NodeType type, const NodeValue info, const size_t line)
 {
     assert(token);
 
@@ -477,31 +472,31 @@ void DumpToken(FILE* fp, token_t* token)
 
     switch (token->type)
     {
-        case TokenType::KEYWORD:
+        case NodeType::KEYWORD:
             fprintf(fp, "TYPE > KEYWORD\n"
                         "ID   > %d\n"
                         "LINE > %d\n"
                         "---------------\n", token->info.var, token->line);
             return;
-        case TokenType::NUM:
+        case NodeType::NUM:
             fprintf(fp, "TYPE > NUMBER\n"
                         "VAL  > %d\n"
                         "LINE > %d\n"
                         "---------------\n", token->info.val, token->line);
             return;
-        case TokenType::OP:
+        case NodeType::OP:
             fprintf(fp, "TYPE > OPERATOR ");
             PrintOperator(fp, token->info.opt);
             fprintf(fp, "\nLINE > %d\n"
                         "---------------\n", token->line);
             return;
-        case TokenType::VAR:
+        case NodeType::VAR:
             fprintf(fp, "TYPE > VARIABLE\n"
                         "ID   > %d\n"
                         "LINE > %d\n"
                         "---------------\n", token->info.var, token->line);
             return;
-        case TokenType::POISON:
+        case NodeType::POISON:
         default:
             fprintf(fp, "POISONED TOKEN\n"
                         "---------------\n");

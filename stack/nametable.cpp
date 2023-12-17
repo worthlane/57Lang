@@ -70,7 +70,7 @@ int InsertNameInTable(nametable_t* nametable, const char* name)
     assert(inserted_name);
 
     nametable->list[nametable->size].name = inserted_name;
-    nametable->list[nametable->size].type = TokenType::VAR;
+    nametable->list[nametable->size].type = NodeType::VAR;
 
     return nametable->size++;
 }

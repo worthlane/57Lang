@@ -17,7 +17,6 @@ int main(const int argc, const char* argv[])
     error_t error = {};
     tree_t tree = {};
 
-
     Stack_t stk = {};
     StackCtor(&stk);
 

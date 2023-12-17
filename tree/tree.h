@@ -120,6 +120,8 @@ enum class NodeType
     OP,
     NUM,
 
+    KEYWORD,
+
     POISON,
 };
 

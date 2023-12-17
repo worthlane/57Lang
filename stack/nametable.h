@@ -8,21 +8,11 @@
 static const size_t DEFAULT_NAMES_AMT  = 64;
 static const size_t MAX_NAME_LEN       = 64;
 
-enum class TokenType
-{
-    OP,
-    KEYWORD,
-    VAR,
-    NUM,
-
-    POISON
-};
-
 struct name_t
 {
     char*     name;
 
-    TokenType type;
+    NodeType type;
 };
 
 struct nametable_t
