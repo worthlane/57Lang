@@ -38,9 +38,9 @@ static Digits   ReadDigit(LinesStorage* text, char* buffer);
 // TOKENIZATOR
 // ======================================================================
 
-static FrontendErrors TokenizeOperator(LinesStorage* text, LexisStorage* storage, error_t* error);
-static FrontendErrors TokenizeWord(LinesStorage* text, LexisStorage* storage, error_t* error);
-static FrontendErrors TokenizeNumber(LinesStorage* text, LexisStorage* storage, error_t* error);
+static FrontendErrors TokenizeOperator(LinesStorage* text, Tokens* storage, error_t* error);
+static FrontendErrors TokenizeWord(LinesStorage* text, Tokens* storage, error_t* error);
+static FrontendErrors TokenizeNumber(LinesStorage* text, Tokens* storage, error_t* error);
 
 // ======================================================================
 // KEYWORDS
@@ -103,7 +103,7 @@ static void FillNametableWithKeywords(nametable_t* nametable)
 
 //-----------------------------------------------------------------------------------------------------
 
-FrontendErrors Tokenize(LinesStorage* text, LexisStorage* storage, error_t* error)
+FrontendErrors Tokenize(LinesStorage* text, Tokens* storage, error_t* error)
 {
     assert(text);
     assert(storage);
@@ -141,7 +141,7 @@ FrontendErrors Tokenize(LinesStorage* text, LexisStorage* storage, error_t* erro
 
 //-----------------------------------------------------------------------------------------------------
 
-static FrontendErrors TokenizeWord(LinesStorage* text, LexisStorage* storage, error_t* error)
+static FrontendErrors TokenizeWord(LinesStorage* text, Tokens* storage, error_t* error)
 {
     assert(text);
     assert(storage);
@@ -149,7 +149,7 @@ static FrontendErrors TokenizeWord(LinesStorage* text, LexisStorage* storage, er
 
     size_t line = text->curr_line;
 
-    token_t* token = &storage->tokens[storage->size];
+    token_t* token = &storage->array[storage->size];
 
     char buffer[MAX_NAME_LEN] = "";
     ReadName(text, buffer);
@@ -176,14 +176,14 @@ static FrontendErrors TokenizeWord(LinesStorage* text, LexisStorage* storage, er
 
 //-----------------------------------------------------------------------------------------------------
 
-static FrontendErrors TokenizeNumber(LinesStorage* text, LexisStorage* storage, error_t* error)
+static FrontendErrors TokenizeNumber(LinesStorage* text, Tokens* storage, error_t* error)
 {
     assert(text);
     assert(storage);
     assert(error);
 
     size_t   line  = text->curr_line;
-    token_t* token = &storage->tokens[storage->size];
+    token_t* token = &storage->array[storage->size];
 
     char buffer[MAX_NAME_LEN] = "";
 
@@ -222,7 +222,7 @@ static FrontendErrors TokenizeNumber(LinesStorage* text, LexisStorage* storage, 
             op = Operators::opt;                          \
             break;
 
-static FrontendErrors TokenizeOperator(LinesStorage* text, LexisStorage* storage, error_t* error)
+static FrontendErrors TokenizeOperator(LinesStorage* text, Tokens* storage, error_t* error)
 {
     assert(text);
     assert(storage);
@@ -248,7 +248,7 @@ static FrontendErrors TokenizeOperator(LinesStorage* text, LexisStorage* storage
             SET_FRONTEND_ERROR(UNKNOWN_OPERATOR, "%c IN LINE %d", ch, text->curr_line);
     }
 
-    token_t* token = &storage->tokens[storage->size];
+    token_t* token = &storage->array[storage->size];
 
     token->info.opt = op;
     token->line     = line;
@@ -507,7 +507,7 @@ void DumpToken(FILE* fp, token_t* token)
 
 //-----------------------------------------------------------------------------------------------------
 
-void SyntaxStorageCtor(LexisStorage* storage)
+void SyntaxStorageCtor(Tokens* storage)
 {
     assert(storage);
 
@@ -515,7 +515,7 @@ void SyntaxStorageCtor(LexisStorage* storage)
 
     assert(tokens);
 
-    storage->tokens = tokens;
+    storage->array = tokens;
     storage->size   = 0;
 
     MakeGlobalNametable(&storage->names);
@@ -523,11 +523,11 @@ void SyntaxStorageCtor(LexisStorage* storage)
 
 //-----------------------------------------------------------------------------------------------------
 
-void SyntaxStorageDtor(LexisStorage* storage)
+void SyntaxStorageDtor(Tokens* storage)
 {
     assert(storage);
 
-    free(storage->tokens);
+    free(storage->array);
 
     storage->size   = 0;
 
@@ -536,14 +536,14 @@ void SyntaxStorageDtor(LexisStorage* storage)
 
 //-----------------------------------------------------------------------------------------------------
 
-void DumpSyntaxStorage(FILE* fp, LexisStorage* storage)
+void DumpSyntaxStorage(FILE* fp, Tokens* storage)
 {
     assert(storage);
 
     for (int i = 0; i < storage->size; i++)
     {
         fprintf(fp, "[%d]{\n", i);
-        DumpToken(fp, &storage->tokens[i]);
+        DumpToken(fp, &storage->array[i]);
         fprintf(fp, "}\n");
     }
 

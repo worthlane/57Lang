@@ -25,12 +25,12 @@
 #ifdef  CUR_TOKEN
 #undef  CUR_TOKEN
 #endif
-#define CUR_TOKEN       storage->lexis->tokens[CUR_PTR]
+#define CUR_TOKEN       storage->tokens->array[CUR_PTR]
 
 #ifdef  NEXT_TOKEN
 #undef  NEXT_TOKEN
 #endif
-#define NEXT_TOKEN       storage->lexis->tokens[CUR_PTR + 1]
+#define NEXT_TOKEN       storage->tokens->array[CUR_PTR + 1]
 
 #ifdef  SKIP_BREAKS
 #undef  SKIP_BREAKS
@@ -164,15 +164,15 @@ static Node* GetComponent(SyntaxStorage* storage, error_t* error);
 
 // -------------------------------------------------------------
 
-void GetTreeFromTokens(LexisStorage* lexis, tree_t* tree, error_t* error)
+void GetTreeFromTokens(Tokens* tokens, tree_t* tree, error_t* error)
 {
-    assert(lexis);
+    assert(tokens);
     assert(tree);
     assert(error);
 
     SyntaxStorage syn = {};
     syn.ptr = 0;
-    syn.lexis = lexis;
+    syn.tokens = tokens;
 
     tree->root = GetProgram(&syn, error);
 }

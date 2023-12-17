@@ -5,10 +5,10 @@
 
 struct SyntaxStorage
 {
-    LexisStorage* lexis;    // TODO rename tokens
-    size_t        ptr;
+    Tokens* tokens;    // TODO rename tokens
+    size_t  ptr;
 };
 
-void GetTreeFromTokens(LexisStorage* lexis, tree_t* tree, error_t* error);  // TODO make lexis const
+void GetTreeFromTokens(Tokens* tokens, tree_t* tree, error_t* error);  // TODO make tokens const
 
 #endif

@@ -29,19 +29,19 @@ void DumpToken(FILE* fp, token_t* token);
 // SYNTAX STORAGE
 // ======================================================================
 
-struct LexisStorage
+struct Tokens
 {
-    token_t*    tokens;
+    token_t*    array;
     size_t      size;
 
     nametable_t names;
 };
 
-void SyntaxStorageCtor(LexisStorage* storage);
-void SyntaxStorageDtor(LexisStorage* storage);
+void SyntaxStorageCtor(Tokens* storage);
+void SyntaxStorageDtor(Tokens* storage);
 
-void DumpSyntaxStorage(FILE* fp, LexisStorage* storage);
+void DumpSyntaxStorage(FILE* fp, Tokens* storage);
 
-FrontendErrors Tokenize(LinesStorage* text, LexisStorage* storage, error_t* error);
+FrontendErrors Tokenize(LinesStorage* text, Tokens* storage, error_t* error);
 
 #endif

@@ -40,7 +40,7 @@ int main(const int argc, const char* argv[])
     LinesStorage info = {};
     CreateTextStorage(&info, &error, data_file);
 
-    LexisStorage storage = {};
+    Tokens storage = {};
     SyntaxStorageCtor(&storage);
 
     Tokenize(&info, &storage, &error);
