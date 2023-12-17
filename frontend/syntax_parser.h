@@ -3,7 +3,7 @@
 
 #include "analysis.h"
 
-struct SyntaxStorage
+struct ParserState
 {
     Tokens* tokens;    // TODO rename tokens
     size_t  ptr;

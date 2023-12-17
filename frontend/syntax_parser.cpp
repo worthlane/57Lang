@@ -134,33 +134,33 @@
 // Var              ::= VAR
 // Num              ::= NUM
 
-static Node* CallFunc(SyntaxStorage* storage, error_t* error);
-static Node* CallVars(SyntaxStorage* storage, error_t* error);
-static Node* GetProgram(SyntaxStorage* storage, error_t* error);
-static Node* DefFunc(SyntaxStorage* storage, error_t* error);
-static Node* GetSubProgram(SyntaxStorage* storage, error_t* error);
-static Node* GetOneFuncVar(SyntaxStorage* storage, error_t* error);
-static Node* GetFuncVars(SyntaxStorage* storage, error_t* error);
-static Node* GetVar(SyntaxStorage* storage, error_t* error);
-static Node* GetNum(SyntaxStorage* storage, error_t* error);
-static Node* GetBreak(SyntaxStorage* storage, error_t* error);
-static Node* GetType(SyntaxStorage* storage, error_t* error);
-static Node* GetInit(SyntaxStorage* storage, error_t* error);
-static Node* GetBlock(SyntaxStorage* storage, error_t* error);
-static Node* GetLine(SyntaxStorage* storage, error_t* error);
-static Node* GetReturn(SyntaxStorage* storage, error_t* error);
-static Node* GetWhileSection(SyntaxStorage* storage, error_t* error);
-static Node* GetIfSection(SyntaxStorage* storage, error_t* error);
-static Node* GetAssignment(SyntaxStorage* storage, error_t* error);
-static Node* GetExpression(SyntaxStorage* storage, error_t* error);
-static Node* GetSumm(SyntaxStorage* storage, error_t* error);
-static Node* GetComparison(SyntaxStorage* storage, error_t* error);
-static Node* GetAndOperand(SyntaxStorage* storage, error_t* error);
-static Node* GetTerm(SyntaxStorage* storage, error_t* error);
-static Node* GetDegree(SyntaxStorage* storage, error_t* error);
-static Node* GetTrigonometry(SyntaxStorage* storage, error_t* error);
-static Node* GetBrackets(SyntaxStorage* storage, error_t* error);
-static Node* GetComponent(SyntaxStorage* storage, error_t* error);
+static Node* CallFunc(ParserState* storage, error_t* error);
+static Node* CallVars(ParserState* storage, error_t* error);
+static Node* GetProgram(ParserState* storage, error_t* error);
+static Node* DefFunc(ParserState* storage, error_t* error);
+static Node* GetSubProgram(ParserState* storage, error_t* error);
+static Node* GetOneFuncVar(ParserState* storage, error_t* error);
+static Node* GetFuncVars(ParserState* storage, error_t* error);
+static Node* GetVar(ParserState* storage, error_t* error);
+static Node* GetNum(ParserState* storage, error_t* error);
+static Node* GetBreak(ParserState* storage, error_t* error);
+static Node* GetType(ParserState* storage, error_t* error);
+static Node* GetInit(ParserState* storage, error_t* error);
+static Node* GetBlock(ParserState* storage, error_t* error);
+static Node* GetLine(ParserState* storage, error_t* error);
+static Node* GetReturn(ParserState* storage, error_t* error);
+static Node* GetWhileSection(ParserState* storage, error_t* error);
+static Node* GetIfSection(ParserState* storage, error_t* error);
+static Node* GetAssignment(ParserState* storage, error_t* error);
+static Node* GetExpression(ParserState* storage, error_t* error);
+static Node* GetSumm(ParserState* storage, error_t* error);
+static Node* GetComparison(ParserState* storage, error_t* error);
+static Node* GetAndOperand(ParserState* storage, error_t* error);
+static Node* GetTerm(ParserState* storage, error_t* error);
+static Node* GetDegree(ParserState* storage, error_t* error);
+static Node* GetTrigonometry(ParserState* storage, error_t* error);
+static Node* GetBrackets(ParserState* storage, error_t* error);
+static Node* GetComponent(ParserState* storage, error_t* error);
 
 // -------------------------------------------------------------
 
@@ -170,7 +170,7 @@ void GetTreeFromTokens(Tokens* tokens, tree_t* tree, error_t* error)
     assert(tree);
     assert(error);
 
-    SyntaxStorage syn = {};
+    ParserState syn = {};
     syn.ptr = 0;
     syn.tokens = tokens;
 
@@ -179,7 +179,7 @@ void GetTreeFromTokens(Tokens* tokens, tree_t* tree, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetProgram(SyntaxStorage* storage, error_t* error)
+static Node* GetProgram(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -216,7 +216,7 @@ static Node* GetProgram(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* DefFunc(SyntaxStorage* storage, error_t* error)
+static Node* DefFunc(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -256,7 +256,7 @@ static Node* DefFunc(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* CallFunc(SyntaxStorage* storage, error_t* error)
+static Node* CallFunc(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -274,7 +274,7 @@ static Node* CallFunc(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetOneFuncVar(SyntaxStorage* storage, error_t* error)
+static Node* GetOneFuncVar(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -296,7 +296,7 @@ static Node* GetOneFuncVar(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetFuncVars(SyntaxStorage* storage, error_t* error)
+static Node* GetFuncVars(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -323,7 +323,7 @@ static Node* GetFuncVars(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* CallVars(SyntaxStorage* storage, error_t* error)
+static Node* CallVars(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -354,7 +354,7 @@ static Node* CallVars(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetBreak(SyntaxStorage* storage, error_t* error)
+static Node* GetBreak(ParserState* storage, error_t* error)
 {
     CONSUME(CUR_TOKEN.type     == NodeType::OP &&
             CUR_TOKEN.info.opt == Operators::BREAK);
@@ -366,7 +366,7 @@ static Node* GetBreak(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetType(SyntaxStorage* storage, error_t* error)
+static Node* GetType(ParserState* storage, error_t* error)
 {
     SYN_ASSERT(IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == NodeType::OP);
     Node* type = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
@@ -377,7 +377,7 @@ static Node* GetType(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetVar(SyntaxStorage* storage, error_t* error)
+static Node* GetVar(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -391,7 +391,7 @@ static Node* GetVar(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetNum(SyntaxStorage* storage, error_t* error)
+static Node* GetNum(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -407,7 +407,7 @@ static Node* GetNum(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetInit(SyntaxStorage* storage, error_t* error)
+static Node* GetInit(ParserState* storage, error_t* error)
 {
     Node* type = GetType(storage, error);
     NULL_IF_ERR;
@@ -427,7 +427,7 @@ static Node* GetInit(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetSubProgram(SyntaxStorage* storage, error_t* error)
+static Node* GetSubProgram(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -442,7 +442,7 @@ static Node* GetSubProgram(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetBlock(SyntaxStorage* storage, error_t* error)
+static Node* GetBlock(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -466,7 +466,7 @@ static Node* GetBlock(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetLine(SyntaxStorage* storage, error_t* error)
+static Node* GetLine(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -515,7 +515,7 @@ static Node* GetLine(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetIfSection(SyntaxStorage* storage, error_t* error)
+static Node* GetIfSection(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -550,7 +550,7 @@ static Node* GetIfSection(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetWhileSection(SyntaxStorage* storage, error_t* error)  //TODO Parser state
+static Node* GetWhileSection(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -585,7 +585,7 @@ static Node* GetWhileSection(SyntaxStorage* storage, error_t* error)  //TODO Par
 
 // -------------------------------------------------------------
 
-static Node* GetAssignment(SyntaxStorage* storage, error_t* error)
+static Node* GetAssignment(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -609,7 +609,7 @@ static Node* GetAssignment(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetReturn(SyntaxStorage* storage, error_t* error)
+static Node* GetReturn(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -630,7 +630,7 @@ static Node* GetReturn(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetExpression(SyntaxStorage* storage, error_t* error)
+static Node* GetExpression(ParserState* storage, error_t* error)
 {
     assert(error);
     assert(storage);
@@ -655,7 +655,7 @@ static Node* GetExpression(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetAndOperand(SyntaxStorage* storage, error_t* error)
+static Node* GetAndOperand(ParserState* storage, error_t* error)
 {
     assert(error);
     assert(storage);
@@ -679,7 +679,7 @@ static Node* GetAndOperand(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetComparison(SyntaxStorage* storage, error_t* error)
+static Node* GetComparison(ParserState* storage, error_t* error)
 {
     assert(error);
     assert(storage);
@@ -706,7 +706,7 @@ static Node* GetComparison(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetSumm(SyntaxStorage* storage, error_t* error)
+static Node* GetSumm(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -731,7 +731,7 @@ static Node* GetSumm(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetTerm(SyntaxStorage* storage, error_t* error)
+static Node* GetTerm(ParserState* storage, error_t* error)
 {
     assert(error);
     assert(storage);
@@ -756,7 +756,7 @@ static Node* GetTerm(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetDegree(SyntaxStorage* storage, error_t* error)
+static Node* GetDegree(ParserState* storage, error_t* error)
 {
     assert(error);
     assert(storage);
@@ -780,7 +780,7 @@ static Node* GetDegree(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetTrigonometry(SyntaxStorage* storage, error_t* error)
+static Node* GetTrigonometry(ParserState* storage, error_t* error)
 {
     assert(error);
     assert(storage);
@@ -807,7 +807,7 @@ static Node* GetTrigonometry(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetBrackets(SyntaxStorage* storage, error_t* error)
+static Node* GetBrackets(ParserState* storage, error_t* error)
 {
     assert(error);
     assert(storage);
@@ -833,7 +833,7 @@ static Node* GetBrackets(SyntaxStorage* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetComponent(SyntaxStorage* storage, error_t* error)
+static Node* GetComponent(ParserState* storage, error_t* error)
 {
     assert(error);
     assert(storage);
