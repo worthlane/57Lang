@@ -10,6 +10,16 @@
 #endif
 #define CUR_PTR storage->ptr
 
+#ifdef  NAMES_STK
+#undef  NAMES_STK
+#endif
+#define NAMES_STK (storage->tokens->names_stk)
+
+#ifdef  TOKEN_NAME
+#undef  TOKEN_NAME
+#endif
+#define TOKEN_NAME(token) storage->tokens->all_names.list[token.info.name_id].name
+
 #ifdef  INCREASE_PTR
 #undef  INCREASE_PTR
 #endif
@@ -105,11 +115,14 @@
                 return nullptr;                                 \
         } while (false)
 
-// CallVars         ::= L_BRACKET Expr { [,] Expr }* R_BRACKET
-// CallFunc         ::= Name CallVars
+static void TryInsertNameInStack(const Stack_t* stk, const char* str,
+                                 bool* exists, bool* is_func, const TokenType type);
+
 
 // Program          ::= DefFunc Break {DefFunc Break}* END
 // DefFunc          ::= Type Var L_BRACKET FuncVars R_BRACKET {BREAK}* FUNC_WALL SubProgram FUNC_WALL
+// CallVars         ::= L_BRACKET Expr { [,] Expr }* R_BRACKET
+// CallFunc         ::= Name CallVars
 // FuncVars         ::= OneFuncVar { [,] OneFuncVar }*
 // OneFuncVar       ::= Type L_BRACKET Var R_BRACKET
 // SubProgram       ::= Block
@@ -118,7 +131,7 @@
 // Block            ::= {Line Break}*
 // Line             ::= {IfSection | WhileSection | Return | Assignment | Init }*
 // Init             ::= TYPE L_BRACKET Assignment R_BRACKET
-// Assignment       ::= Var ASSIGN Expression
+// Assignment       ::= Name ASSIGN Expression
 // Return           ::= RETURN Expression
 // Expression       ::= AndOperand   { [OR] AndOperand }*
 // AndOperand       ::= Comparison   { [AND] Comparison }*
@@ -126,13 +139,18 @@
 // Summ             ::= Term         { [ADD SUB] Term }*
 // Term             ::= Degree       { [MUL DIV] Degree }*
 // Degree           ::= Trigonometry { [^] Trigonometry }*
-// Trigonometry     ::=              { [SIN COS CallFunc] Brackets }*
+// Trigonometry     ::=              { [SIN COS] Brackets }*
 // Brackets         ::= L_BRACKET Expression R_BRACKET | Component
-// Component        ::= [+ -] (Var | Num)
+// Component        ::= [+ -] (Name | Num | CallFunc)
 // Type             ::= TYPE
 // Break            ::= BREAK
-// Var              ::= VAR
+// Name             ::= NAME
 // Num              ::= NUM
+
+static Node* GetNewVar(ParserState* storage, error_t* error);
+static Node* GetOldVar(ParserState* storage, error_t* error);
+static Node* GetNewFuncName(ParserState* storage, error_t* error);
+static Node* GetOldFuncName(ParserState* storage, error_t* error);
 
 static Node* CallFunc(ParserState* storage, error_t* error);
 static Node* CallVars(ParserState* storage, error_t* error);
@@ -141,7 +159,7 @@ static Node* DefFunc(ParserState* storage, error_t* error);
 static Node* GetSubProgram(ParserState* storage, error_t* error);
 static Node* GetOneFuncVar(ParserState* storage, error_t* error);
 static Node* GetFuncVars(ParserState* storage, error_t* error);
-static Node* GetVar(ParserState* storage, error_t* error);
+static Node* GetName(ParserState* storage, error_t* error);
 static Node* GetNum(ParserState* storage, error_t* error);
 static Node* GetBreak(ParserState* storage, error_t* error);
 static Node* GetType(ParserState* storage, error_t* error);
@@ -216,6 +234,142 @@ static Node* GetProgram(ParserState* storage, error_t* error)
 
 // -------------------------------------------------------------
 
+static Node* GetNewVar(ParserState* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::NAME);
+
+    Node* var = MakeNode(NodeType::VAR, {.var = CUR_TOKEN.info.name_id});
+
+    bool exists = false;
+    bool is_func = false;
+
+    TryInsertNameInStack(&NAMES_STK, TOKEN_NAME(CUR_TOKEN), &exists, &is_func, TokenType::VAR_NAME);
+
+    if (is_func)
+    {
+        error->code = (int) FrontendErrors::INVALID_SYNTAX;
+        SetErrorData(error, "CAN NOT GIVE TO VARIABLE FUNCTION'S NAME ON LINE %d<br>\n", CUR_TOKEN.line);
+        return nullptr;
+    }
+    if (exists)
+    {
+        error->code = (int) FrontendErrors::INVALID_SYNTAX;
+        SetErrorData(error, "CAN NOT INIT VARIABLE AGAIN ON LINE %d<br>\n", CUR_TOKEN.line);
+        return nullptr;
+    }
+
+    INCREASE_PTR;
+
+    return var;
+}
+
+// -------------------------------------------------------------
+
+static Node* GetOldVar(ParserState* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::NAME);
+
+    Node* var = MakeNode(NodeType::VAR, {.var = CUR_TOKEN.info.name_id});
+
+    bool exists = false;
+    bool is_func = false;
+
+    TryInsertNameInStack(&NAMES_STK, TOKEN_NAME(CUR_TOKEN), &exists, &is_func, TokenType::VAR_NAME);
+
+    if (is_func)
+    {
+        error->code = (int) FrontendErrors::INVALID_SYNTAX;
+        SetErrorData(error, "CAN NOT GET FUNCTION AS VARIABLE ON LINE %d<br>\n", CUR_TOKEN.line);
+        return nullptr;
+    }
+    if (!exists)
+    {
+        error->code = (int) FrontendErrors::INVALID_SYNTAX;
+        SetErrorData(error, "UNKNOWN VARIABLE ON LINE %d<br>\n", CUR_TOKEN.line);
+        return nullptr;
+    }
+
+    INCREASE_PTR;
+
+    return var;
+}
+
+// -------------------------------------------------------------
+
+static Node* GetOldFuncName(ParserState* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::NAME);
+
+    Node* var = MakeNode(NodeType::VAR, {.var = CUR_TOKEN.info.name_id});
+
+    bool exists = false;
+    bool is_func = false;
+
+    TryInsertNameInStack(&NAMES_STK, TOKEN_NAME(CUR_TOKEN), &exists, &is_func, TokenType::VAR_NAME);
+
+    if (!is_func)
+    {
+        error->code = (int) FrontendErrors::INVALID_SYNTAX;
+        SetErrorData(error, "CAN NOT GET VARIABLE AS FUNCTION ON LINE %d<br>\n", CUR_TOKEN.line);
+        return nullptr;
+    }
+    if (!exists)
+    {
+        error->code = (int) FrontendErrors::INVALID_SYNTAX;
+        SetErrorData(error, "UNKNOWN FUNCTION ON LINE %d<br>\n", CUR_TOKEN.line);
+        return nullptr;
+    }
+
+    INCREASE_PTR;
+
+    return var;
+}
+
+// -------------------------------------------------------------
+
+static Node* GetNewFuncName(ParserState* storage, error_t* error)
+{
+    assert(storage);
+    assert(error);
+
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::NAME);
+
+    Node* var = MakeNode(NodeType::VAR, {.var = CUR_TOKEN.info.name_id});
+
+    bool exists = false;
+    bool is_func = false;
+
+    TryInsertNameInStack(&NAMES_STK, TOKEN_NAME(CUR_TOKEN), &exists, &is_func, TokenType::VAR_NAME);
+
+    if (!is_func)
+    {
+        error->code = (int) FrontendErrors::INVALID_SYNTAX;
+        SetErrorData(error, "CAN NOT GET VARIABLE AS FUNCTION ON LINE %d<br>\n", CUR_TOKEN.line);
+        return nullptr;
+    }
+    if (exists)
+    {
+        error->code = (int) FrontendErrors::INVALID_SYNTAX;
+        SetErrorData(error, "DOUBLE FUNCTION INIT ON LINE %d<br>\n", CUR_TOKEN.line);
+        return nullptr;
+    }
+
+    INCREASE_PTR;
+
+    return var;
+}
+
+// -------------------------------------------------------------
+
 static Node* DefFunc(ParserState* storage, error_t* error)
 {
     assert(storage);
@@ -226,7 +380,7 @@ static Node* DefFunc(ParserState* storage, error_t* error)
 
     CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::L_BRACKET);
 
-    Node* name = GetVar(storage, error);    // TODO make name
+    Node* name = GetName(storage, error);    // TODO make name
     NULL_IF_ERR;
 
     CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::L_BRACKET);
@@ -261,7 +415,7 @@ static Node* CallFunc(ParserState* storage, error_t* error)
     assert(storage);
     assert(error);
 
-    Node* name = GetVar(storage, error);    // TODO make name
+    Node* name = GetName(storage, error);    // TODO make name
     NULL_IF_ERR;
 
     Node* vars = CallVars(storage, error);
@@ -284,7 +438,7 @@ static Node* GetOneFuncVar(ParserState* storage, error_t* error)
 
     CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::L_BRACKET);
 
-    Node* var = GetVar(storage, error);
+    Node* var = GetName(storage, error);
     NULL_IF_ERR;
 
     CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::R_BRACKET);
@@ -305,6 +459,9 @@ static Node* GetFuncVars(ParserState* storage, error_t* error)
 
     if (!(IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == TokenType::TOKEN)) { return nullptr; }
 
+    nametable_t* local_table = MakeNametable();
+    StackPush(&NAMES_STK, local_table);
+
     vars = GetOneFuncVar(storage, error);
     NULL_IF_ERR;
 
@@ -317,6 +474,8 @@ static Node* GetFuncVars(ParserState* storage, error_t* error)
 
         vars = MakeNode(NodeType::OP, {.opt = Operators::COMMA}, vars, var);
     }
+
+    StackPop(&NAMES_STK);
 
     return vars;
 }
@@ -377,7 +536,7 @@ static Node* GetType(ParserState* storage, error_t* error)
 
 // -------------------------------------------------------------
 
-static Node* GetVar(ParserState* storage, error_t* error)
+static Node* GetName(ParserState* storage, error_t* error)
 {
     assert(storage);
     assert(error);
@@ -447,6 +606,9 @@ static Node* GetBlock(ParserState* storage, error_t* error)
     assert(storage);
     assert(error);
 
+    nametable_t* local_table = MakeNametable();
+    StackPush(&NAMES_STK, local_table);
+
     Node* val  = GetLine(storage, error);
     NULL_IF_ERR;
 
@@ -460,6 +622,8 @@ static Node* GetBlock(ParserState* storage, error_t* error)
         ConnectNodes(val, nullptr, val2);
         val = val2;
     }
+
+    StackPop(&NAMES_STK);
 
     return head;
 }
@@ -592,7 +756,7 @@ static Node* GetAssignment(ParserState* storage, error_t* error)
 
     SKIP_BREAKS;
 
-    Node* var = GetVar(storage, error);
+    Node* var = GetName(storage, error);
     NULL_IF_ERR;
 
     SYN_ASSERT(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::ASSIGN);
@@ -863,7 +1027,7 @@ static Node* GetComponent(ParserState* storage, error_t* error)
                 return call_func;
             }
             else
-                num = GetVar(storage, error);
+                num = GetName(storage, error);
         }
 
         NULL_IF_ERR;
@@ -888,7 +1052,7 @@ static Node* GetComponent(ParserState* storage, error_t* error)
                 return call_func;
             }
             else
-                num = GetVar(storage, error);
+                num = GetName(storage, error);
         }
 
         NULL_IF_ERR;
@@ -897,5 +1061,29 @@ static Node* GetComponent(ParserState* storage, error_t* error)
     }
 
     return val;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static void TryInsertNameInStack(const Stack_t* stk, const char* str,
+                                 bool* exists, bool* is_func, const TokenType type)
+{
+    assert(stk);
+    assert(str);
+    assert(is_func);
+    assert(exists);
+
+    bool found = false;
+
+    for (int i = 0; i < stk->size; i++)
+    {
+        found = FindNameInTable(stk->data[i], str, exists, is_func);
+
+        if (found)
+            break;
+    }
+
+    if (!found)
+        InsertNameInTable(stk->data[stk->size - 1], str, type);
 }
 

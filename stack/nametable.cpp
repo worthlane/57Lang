@@ -119,7 +119,7 @@ void DumpNametable(FILE* fp, nametable_t* nametable)
 
 //-----------------------------------------------------------------------------------------------------
 
-int InsertNameInTable(nametable_t* nametable, const char* name)
+int InsertNameInTable(nametable_t* nametable, const char* name, const TokenType type)
 {
     assert(nametable);
     assert(nametable->list);
@@ -134,7 +134,7 @@ int InsertNameInTable(nametable_t* nametable, const char* name)
     assert(inserted_name);
 
     nametable->list[nametable->size].name = inserted_name;
-    nametable->list[nametable->size].type = TokenType::NAME;
+    nametable->list[nametable->size].type = type;
 
     return nametable->size++;
 }
@@ -197,4 +197,25 @@ bool IsType(const Operators type)
     }
 
     return false;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+bool FindNameInTable(const nametable_t* nametable, const char* name, bool* exists, bool* is_func)
+{
+    assert(nametable);
+    assert(name);
+    assert(is_func);
+    assert(exists);
+
+    for (int i = 0; i < nametable->size; i++)
+    {
+        if (!strncmp(name, nametable->list[i].name, MAX_NAME_LEN))
+        {
+            if (nametable->list[i].type == TokenType::FUNC_NAME)
+                *is_func == true;
+            *exists = true;
+            return true;
+        }
+    }
 }

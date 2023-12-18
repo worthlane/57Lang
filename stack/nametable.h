@@ -120,7 +120,8 @@ void         NametableDtor(nametable_t* nametable);
 
 void DumpNametable(FILE* fp, nametable_t* nametable);
 
-int InsertNameInTable(nametable_t* nametable, const char* name);
+int InsertNameInTable(nametable_t* nametable, const char* name, const TokenType type = TokenType::NAME);
+bool FindNameInTable(const nametable_t* nametable, const char* name, bool* exists, bool* is_func);
 
 // ======================================================================
 // KEYWORDS

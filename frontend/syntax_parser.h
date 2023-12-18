@@ -5,7 +5,7 @@
 
 struct ParserState
 {
-    Tokens* tokens;    // TODO rename tokens
+    Tokens* tokens;
     size_t  ptr;
 };
 
