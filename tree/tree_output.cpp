@@ -6,7 +6,7 @@
 
 static void PrintNodeDataType(FILE* fp, const NodeType type);
 
-static void NodesInfixPrint(FILE* fp, const tree_t* tree, const Node* node);
+static void NodesPrefixPrint(FILE* fp, const tree_t* tree, const Node* node);
 
 // ======================================================================
 // GRAPH BUILDING
@@ -189,28 +189,28 @@ int TreeDump(FILE* fp, const void* nodes, const char* func, const char* file, co
 
 //-----------------------------------------------------------------------------------------------------
 
-void PrintInfixTree(FILE* fp, const tree_t* tree)
+void PrintPrefixTree(FILE* fp, const tree_t* tree)
 {
     assert(tree);
 
-    NodesInfixPrint(fp, tree, tree->root);
+    NodesPrefixPrint(fp, tree, tree->root);
     fprintf(fp, "\n");
 }
 
 //-----------------------------------------------------------------------------------------------------
 
-static void NodesInfixPrint(FILE* fp, const tree_t* tree, const Node* node)
+static void NodesPrefixPrint(FILE* fp, const tree_t* tree, const Node* node)
 {
     if (!node) { fprintf(fp, " "); fprintf(fp, NIL); fprintf(fp, " "); return; }
-
-    fprintf(fp, "(");
-    NodesInfixPrint(fp, tree, node->left);
-    fprintf(fp, ")");
 
     PrintSyncNodeData(fp, tree, node);
 
     fprintf(fp, "(");
-    NodesInfixPrint(fp, tree, node->right);
+    NodesPrefixPrint(fp, tree, node->left);
+    fprintf(fp, ")");
+
+    fprintf(fp, "(");
+    NodesPrefixPrint(fp, tree, node->right);
     fprintf(fp, ")");
 }
 

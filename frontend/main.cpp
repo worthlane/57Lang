@@ -41,7 +41,7 @@ int main(const int argc, const char* argv[])
     GetTreeFromTokens(&storage, &tree, &error);
     EXIT_IF_FRONTEND_ERROR;
 
-    PrintInfixTree(out_stream, &tree);
+    PrintPrefixTree(out_stream, &tree);
 
     DUMP_TREE(&tree);
 

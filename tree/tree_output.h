@@ -1,12 +1,9 @@
 #include "tree.h"
 #include "visual.h"
 
-static const char* TREE_FILE = "assets/tmp.txt";
-static const char* NIL       = "nil";
-
 void PrintOperator(FILE* fp, const Operators sign);
 
-void PrintInfixTree(FILE* fp, const tree_t* tree);
+void PrintPrefixTree(FILE* fp, const tree_t* tree);
 
 // ======================================================================
 // EXPRESSION TREE NODES

@@ -290,7 +290,6 @@ static void SkipSymbols(LinesStorage* text)
 
     while (need_to_skip)
         need_to_skip = SkipSpaces(text) || SkipComments(text);
-
 }
 
 //-----------------------------------------------------------------------------------------------------

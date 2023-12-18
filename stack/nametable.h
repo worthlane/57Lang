@@ -161,6 +161,7 @@ static const char* END          = "@57@";
 static const char* FUNC_WALL    = "##################################################";
 
 Operators TranslateKeywordToOperator(const char* keyword);
+Operators GetOperator(const char* word);
 bool      IsType(const Operators type);
 
 // ======================================================================

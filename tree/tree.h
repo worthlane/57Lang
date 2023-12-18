@@ -8,6 +8,10 @@
 
 #include "stack/nametable.h"
 
+static const char* TREE_FILE = "assets/tmp.txt";
+
+static const char* NIL       = "nil";
+
 // ======================================================================
 // ERRORS
 // ======================================================================
@@ -29,10 +33,10 @@ enum class TreeErrors
 };
 int PrintTreeError(FILE* fp, const void* err, const char* func, const char* file, const int line);
 
-#ifdef EXIT_IF_EXPRESSION_ERROR
-#undef EXIT_IF_EXPRESSION_ERROR
+#ifdef EXIT_IF_TREE_ERROR
+#undef EXIT_IF_TREE_ERROR
 #endif
-#define EXIT_IF_EXPRESSION_ERROR(error)     do                                                            \
+#define EXIT_IF_TREE_ERROR(error)     do                                                            \
                                             {                                                           \
                                                 if ((error)->code != (int) TreeErrors::NONE)      \
                                                 {                                                       \
@@ -40,10 +44,10 @@ int PrintTreeError(FILE* fp, const void* err, const char* func, const char* file
                                                                     __FILE__, __LINE__);                \
                                                 }                                                       \
                                             } while(0)
-#ifdef RETURN_IF_EXPRESSION_ERROR
-#undef RETURN_IF_EXPRESSION_ERROR
+#ifdef RETURN_IF_TREE_ERROR
+#undef RETURN_IF_TREE_ERROR
 #endif
-#define RETURN_IF_EXPRESSION_ERROR(error)   do                                                            \
+#define RETURN_IF_TREE_ERROR(error)   do                                                            \
                                             {                                                           \
                                                 if ((error) != TreeErrors::NONE)                  \
                                                 {                                                       \

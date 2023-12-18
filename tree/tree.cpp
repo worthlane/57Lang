@@ -121,7 +121,7 @@ tree_t* MakeTree(error_t* error)
     if (expr == nullptr)
     {
         error->code = (int) TreeErrors::ALLOCATE_MEMORY;
-        error->data = "EXPRESSION STRUCT";
+        error->data = "TREE STRUCT";
         return nullptr;
     }
 
@@ -261,13 +261,13 @@ static TreeErrors VerifyNodes(const Node* node, error_t* error)
     if (node->left != nullptr)
     {
         NodeVerify(node->left, error);
-        RETURN_IF_EXPRESSION_ERROR((TreeErrors) error->code);
+        RETURN_IF_TREE_ERROR((TreeErrors) error->code);
     }
 
     if (node->right != nullptr)
     {
         NodeVerify(node->right, error);
-        RETURN_IF_EXPRESSION_ERROR((TreeErrors) error->code);
+        RETURN_IF_TREE_ERROR((TreeErrors) error->code);
     }
 
     NodeVerify(node, error);

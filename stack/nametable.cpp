@@ -169,7 +169,7 @@ int InsertNameInTable(nametable_t* nametable, const char* name, const TokenType 
     else
 
 
-Operators TranslateKeywordToOperator(const char* keyword)  // TODO operators not like keyword
+Operators TranslateKeywordToOperator(const char* keyword)
 {
     if (!keyword) return Operators::UNK;
 
@@ -194,6 +194,73 @@ Operators TranslateKeywordToOperator(const char* keyword)  // TODO operators not
     COMPARE_KEYWORD(AND);
     COMPARE_KEYWORD(OR);
     COMPARE_KEYWORD(FUNC_WALL);
+
+    /* else */ return Operators::UNK;
+
+}
+
+#undef COMPARE_KEYWORD
+
+//-----------------------------------------------------------------------------------------------------
+
+#ifdef COMPARE_WORD
+#undef COMPARE_WORD
+#endif
+#define COMPARE_WORD(op)                     \
+    if (!strncmp(word, #op, MAX_NAME_LEN))   \
+    {                                           \
+        return Operators::op;                       \
+    }                                           \
+    else
+
+
+Operators GetOperator(const char* word)
+{
+    if (!word) return Operators::UNK;
+
+    COMPARE_WORD(ADD);
+    COMPARE_WORD(SUB);
+    COMPARE_WORD(MUL);
+    COMPARE_WORD(DIV);
+    COMPARE_WORD(DEG);
+
+    COMPARE_WORD(ASSIGN);
+    COMPARE_WORD(SIN);
+    COMPARE_WORD(COS);
+    COMPARE_WORD(IF);
+    COMPARE_WORD(ELSE);
+    COMPARE_WORD(WHILE);
+
+    COMPARE_WORD(GREATER);
+    COMPARE_WORD(GREATEREQUAL);
+    COMPARE_WORD(LESS);
+    COMPARE_WORD(LESSEQUAL);
+    COMPARE_WORD(EQUAL);
+    COMPARE_WORD(NOT_EQUAL);
+    COMPARE_WORD(AND);
+    COMPARE_WORD(OR);
+
+    COMPARE_WORD(INPUT);
+    COMPARE_WORD(OUTPUT);
+
+    COMPARE_WORD(INT);
+
+    COMPARE_WORD(L_BRACKET);
+    COMPARE_WORD(R_BRACKET);
+    COMPARE_WORD(COMMA);
+    COMPARE_WORD(BREAK);
+    COMPARE_WORD(CLOSE_BLOCK);
+    COMPARE_WORD(FUNC_WALL);
+
+    COMPARE_WORD(RETURN);
+
+    COMPARE_WORD(END);
+
+    COMPARE_WORD(FUNC_CALL);
+
+    COMPARE_WORD(TYPE);
+    COMPARE_WORD(NEW_FUNC);
+    COMPARE_WORD(FUNC);
 
     /* else */ return Operators::UNK;
 
