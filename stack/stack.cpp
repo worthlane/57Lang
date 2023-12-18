@@ -209,7 +209,16 @@ int StackPop(Stack_t* stk, elem_t* ret_value)
 
     CHECK_STACK(stk);
 
-    *(ret_value) = (stk->data)[--(stk->size)];
+    if (ret_value)
+    {
+        *(ret_value) = (stk->data)[--(stk->size)];
+        NametableDtor((nametable_t*) ret_value);
+    }
+    else
+    {
+        stk->size--;
+    }
+
     (stk->data)[(stk->size)] = STK_POISON;
 
     if (stk->size <= stk->capacity >> 2)

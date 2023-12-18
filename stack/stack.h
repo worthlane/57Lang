@@ -162,7 +162,7 @@ int StackPush(Stack_t* stk, elem_t value);
  * @param[out] ret_value popped element
  * @return int error code
  ************************************************************/
-int StackPop(Stack_t* stk, elem_t* ret_value);
+int StackPop(Stack_t* stk, elem_t* ret_value = nullptr);
 
 /************************************************************//**
  * @brief Prints info about stack in output stream

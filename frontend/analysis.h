@@ -6,7 +6,7 @@
 #include "tree/tree.h"
 #include "common/file_read.h"
 #include "frontend.h"
-#include "stack/nametable.h"
+#include "stack/stack.h"
 
 static const size_t DEFAULT_TOKENS_AMT = 500;
 
@@ -28,12 +28,14 @@ struct Tokens
     size_t      size;
 
     nametable_t all_names;
+
+    Stack_t     names_stk;
 };
 
-void SyntaxStorageCtor(Tokens* storage);
-void SyntaxStorageDtor(Tokens* storage);
+void TokensStorageCtor(Tokens* storage);
+void TokensStorageDtor(Tokens* storage);
 
-void DumpSyntaxStorage(FILE* fp, Tokens* storage);
+void DumpTokensStorage(FILE* fp, Tokens* storage);
 
 FrontendErrors Tokenize(LinesStorage* text, Tokens* storage, error_t* error);
 

@@ -20,17 +20,6 @@ int main(const int argc, const char* argv[])
     Stack_t stk = {};
     StackCtor(&stk);
 
-    nametable_t names = {};
-    NametableCtor(&names);
-
-    StackPush(&stk, &names);
-    StackPush(&stk, &names);
-    StackPush(&stk, &names);
-    StackPush(&stk, &names);
-    StackPush(&stk, &names);
-
-    STACK_DUMP(&stk);
-
 
     const char* data_file = GetFileName(argc, argv, 1, "INPUT", &error);
     EXIT_IF_ERROR(&error);
@@ -41,12 +30,12 @@ int main(const int argc, const char* argv[])
     CreateTextStorage(&info, &error, data_file);
 
     Tokens storage = {};
-    SyntaxStorageCtor(&storage);
+    TokensStorageCtor(&storage);
 
     Tokenize(&info, &storage, &error);
     EXIT_IF_FRONTEND_ERROR;
 
-    DumpSyntaxStorage(stdout, &storage);
+    DumpTokensStorage(stdout, &storage);
 
     TreeCtor(&tree, &error);
 

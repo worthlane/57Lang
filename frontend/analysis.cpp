@@ -512,11 +512,13 @@ void DumpToken(FILE* fp, token_t* token)
 
 //-----------------------------------------------------------------------------------------------------
 
-void SyntaxStorageCtor(Tokens* storage)
+void TokensStorageCtor(Tokens* storage)
 {
     assert(storage);
 
     token_t* tokens = (token_t*) calloc(DEFAULT_TOKENS_AMT, sizeof(token_t));
+
+    StackCtor(&(storage->names_stk));
 
     assert(tokens);
 
@@ -528,9 +530,11 @@ void SyntaxStorageCtor(Tokens* storage)
 
 //-----------------------------------------------------------------------------------------------------
 
-void SyntaxStorageDtor(Tokens* storage)
+void TokensStorageDtor(Tokens* storage)
 {
     assert(storage);
+
+    StackDtor(&(storage->names_stk));
 
     free(storage->array);
 
@@ -541,7 +545,7 @@ void SyntaxStorageDtor(Tokens* storage)
 
 //-----------------------------------------------------------------------------------------------------
 
-void DumpSyntaxStorage(FILE* fp, Tokens* storage)
+void DumpTokensStorage(FILE* fp, Tokens* storage)
 {
     assert(storage);
 
