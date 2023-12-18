@@ -163,6 +163,7 @@ static const char* FUNC_WALL    = "#############################################
 Operators TranslateKeywordToOperator(const char* keyword);
 Operators GetOperator(const char* word);
 bool      IsType(const Operators type);
+void      PrintOperator(FILE* fp, const Operators sign);
 
 // ======================================================================
 // WORD DIGITS FORMAT

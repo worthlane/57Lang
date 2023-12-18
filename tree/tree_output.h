@@ -1,7 +1,8 @@
+#ifndef _TREE_OUTPUT_H_
+#define _TREE_OUTPUT_H_
+
 #include "tree.h"
 #include "visual.h"
-
-void PrintOperator(FILE* fp, const Operators sign);
 
 void PrintPrefixTree(FILE* fp, const tree_t* tree);
 
@@ -35,3 +36,5 @@ int    TreeDump(FILE* fp, const void* nodes, const char* func, const char* file,
                                 {                                                               \
                                     LogDump(TreeDump, (tree), __func__, __FILE__, __LINE__);    \
                                 } while(0)
+
+#endif

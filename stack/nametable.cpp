@@ -158,6 +158,63 @@ int InsertNameInTable(nametable_t* nametable, const char* name, const TokenType 
 
 //-----------------------------------------------------------------------------------------------------
 
+#ifdef CHECK_OP
+#undef CHECK_OP
+#endif
+#define CHECK_OP(opt)        \
+    case (Operators::opt):        \
+        fprintf(fp, #opt);   \
+        break;                    \
+
+void PrintOperator(FILE* fp, const Operators sign)
+{
+    switch (sign)
+    {
+        CHECK_OP(ADD);
+        CHECK_OP(SUB);
+        CHECK_OP(MUL);
+        CHECK_OP(DIV);
+        CHECK_OP(DEG);
+        CHECK_OP(COMMA);
+        CHECK_OP(L_BRACKET);
+        CHECK_OP(R_BRACKET);
+
+        CHECK_OP(BREAK);
+        CHECK_OP(INPUT);
+        CHECK_OP(INT);
+        CHECK_OP(OUTPUT);
+        CHECK_OP(SIN);
+        CHECK_OP(COS);
+        CHECK_OP(ASSIGN);
+        CHECK_OP(IF);
+        CHECK_OP(WHILE);
+        CHECK_OP(FUNC_WALL);
+        CHECK_OP(END);
+        CHECK_OP(AND);
+        CHECK_OP(OR);
+        CHECK_OP(GREATER);
+        CHECK_OP(GREATEREQUAL);
+        CHECK_OP(LESSEQUAL);
+        CHECK_OP(LESS);
+        CHECK_OP(EQUAL);
+        CHECK_OP(NOT_EQUAL);
+        CHECK_OP(RETURN);
+        CHECK_OP(ELSE);
+        CHECK_OP(CLOSE_BLOCK);
+        CHECK_OP(TYPE);
+        CHECK_OP(FUNC);
+        CHECK_OP(NEW_FUNC);
+        CHECK_OP(FUNC_CALL);
+
+        default:
+            fprintf(fp, " undefined_operator ");
+    }
+}
+
+#undef CHECK_SHORT_OP
+
+//-----------------------------------------------------------------------------------------------------
+
 #ifdef COMPARE_KEYWORD
 #undef COMPARE_KEYWORD
 #endif

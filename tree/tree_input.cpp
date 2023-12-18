@@ -30,8 +30,6 @@ static char CheckOpeningBracketInInput(LinesStorage* info)
     char opening_bracket_check = Bufgetc(info);
     SkipBufSpaces(info);
 
-    printf("[%c]\n", opening_bracket_check);
-
     return opening_bracket_check;
 }
 
