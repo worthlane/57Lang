@@ -464,6 +464,8 @@ void TokensStorageCtor(Tokens* storage)
     nametable_t* global_table = MakeNametable();
     GlobalNametableCtor(global_table);
 
+    StackPush(&(storage->names_stk), global_table);
+
     assert(tokens);
 
     storage->array = tokens;

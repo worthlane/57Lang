@@ -213,9 +213,11 @@ bool FindNameInTable(const nametable_t* nametable, const char* name, bool* exist
         if (!strncmp(name, nametable->list[i].name, MAX_NAME_LEN))
         {
             if (nametable->list[i].type == TokenType::FUNC_NAME)
-                *is_func == true;
+                *is_func = true;
             *exists = true;
             return true;
         }
     }
+
+    return false;
 }
