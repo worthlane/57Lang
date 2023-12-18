@@ -114,8 +114,9 @@ struct nametable_t
     size_t capacity;            // TODO пока не используется, переделать с реаллоком
 };
 
-void NametableCtor(nametable_t* nametable);
-void NametableDtor(nametable_t* nametable);
+nametable_t* MakeNametable();
+void         NametableCtor(nametable_t* nametable);
+void         NametableDtor(nametable_t* nametable);
 
 void DumpNametable(FILE* fp, nametable_t* nametable);
 
@@ -124,6 +125,10 @@ int InsertNameInTable(nametable_t* nametable, const char* name);
 // ======================================================================
 // KEYWORDS
 // ======================================================================
+
+int  InsertKeywordInTable(nametable_t* nametable, const char* name);
+void FillNametableWithKeywords(nametable_t* nametable);
+void GlobalNametableCtor(nametable_t* nametable);
 
 static const char* IF           = "57?";
 static const char* ELSE         = "!57?";

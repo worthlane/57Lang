@@ -42,65 +42,6 @@ static FrontendErrors TokenizeOperator(LinesStorage* text, Tokens* storage, erro
 static FrontendErrors TokenizeWord(LinesStorage* text, Tokens* storage, error_t* error);
 static FrontendErrors TokenizeNumber(LinesStorage* text, Tokens* storage, error_t* error);
 
-// ======================================================================
-// KEYWORDS
-// ======================================================================
-
-static int  InsertKeywordInTable(nametable_t* nametable, const char* name);
-static void FillNametableWithKeywords(nametable_t* nametable);
-static void MakeGlobalNametable(nametable_t* nametable);
-
-//-----------------------------------------------------------------------------------------------------
-
-static void MakeGlobalNametable(nametable_t* nametable)
-{
-    assert(nametable);
-
-    NametableCtor(nametable);
-
-    FillNametableWithKeywords(nametable);
-}
-
-//-----------------------------------------------------------------------------------------------------
-
-static int InsertKeywordInTable(nametable_t* nametable, const char* name)
-{
-    int id = InsertNameInTable(nametable, name);
-
-    nametable->list[id].type = TokenType::TOKEN;
-
-    return id;
-}
-
-//-----------------------------------------------------------------------------------------------------
-
-static void FillNametableWithKeywords(nametable_t* nametable)
-{
-    assert(nametable);
-
-    InsertKeywordInTable(nametable, IF);
-    InsertKeywordInTable(nametable, ELSE);
-    InsertKeywordInTable(nametable, CLOSE_BLOCK);
-    InsertKeywordInTable(nametable, WHILE);
-    InsertKeywordInTable(nametable, FUNC_WALL);
-    InsertKeywordInTable(nametable, SIN);
-    InsertKeywordInTable(nametable, INPUT);
-    InsertKeywordInTable(nametable, OUTPUT);
-    InsertKeywordInTable(nametable, INT);
-    InsertKeywordInTable(nametable, COS);
-    InsertKeywordInTable(nametable, ASSIGN);
-    InsertKeywordInTable(nametable, END);
-    InsertKeywordInTable(nametable, AND);
-    InsertKeywordInTable(nametable, OR);
-    InsertKeywordInTable(nametable, LESS);
-    InsertKeywordInTable(nametable, LESSEQUAL);
-    InsertKeywordInTable(nametable, GREATER);
-    InsertKeywordInTable(nametable, NOT_EQUAL);
-    InsertKeywordInTable(nametable, GREATEREQUAL);
-    InsertKeywordInTable(nametable, EQUAL);
-    InsertKeywordInTable(nametable, RETURN);
-}
-
 //-----------------------------------------------------------------------------------------------------
 
 FrontendErrors Tokenize(LinesStorage* text, Tokens* storage, error_t* error)
@@ -520,12 +461,15 @@ void TokensStorageCtor(Tokens* storage)
 
     StackCtor(&(storage->names_stk));
 
+    nametable_t* global_table = MakeNametable();
+    GlobalNametableCtor(global_table);
+
     assert(tokens);
 
     storage->array = tokens;
     storage->size   = 0;
 
-    MakeGlobalNametable(&storage->all_names);
+    GlobalNametableCtor(&storage->all_names);
 }
 
 //-----------------------------------------------------------------------------------------------------

@@ -94,6 +94,8 @@ int StackDtor(Stack_t* stk)
 
     ON_CANARY(elem_t* data = (elem_t*)((char*) stk->data - sizeof(canary_t)));
 
+    // TODO mem leak
+
     free(data);
 
     stk->data     = nullptr;

@@ -5,6 +5,70 @@
 
 //-----------------------------------------------------------------------------------------------------
 
+void GlobalNametableCtor(nametable_t* nametable)
+{
+    assert(nametable);
+
+    NametableCtor(nametable);
+
+    FillNametableWithKeywords(nametable);
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+int InsertKeywordInTable(nametable_t* nametable, const char* name)
+{
+    int id = InsertNameInTable(nametable, name);
+
+    nametable->list[id].type = TokenType::TOKEN;
+
+    return id;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+void FillNametableWithKeywords(nametable_t* nametable)
+{
+    assert(nametable);
+
+    InsertKeywordInTable(nametable, IF);
+    InsertKeywordInTable(nametable, ELSE);
+    InsertKeywordInTable(nametable, CLOSE_BLOCK);
+    InsertKeywordInTable(nametable, WHILE);
+    InsertKeywordInTable(nametable, FUNC_WALL);
+    InsertKeywordInTable(nametable, SIN);
+    InsertKeywordInTable(nametable, INPUT);
+    InsertKeywordInTable(nametable, OUTPUT);
+    InsertKeywordInTable(nametable, INT);
+    InsertKeywordInTable(nametable, COS);
+    InsertKeywordInTable(nametable, ASSIGN);
+    InsertKeywordInTable(nametable, END);
+    InsertKeywordInTable(nametable, AND);
+    InsertKeywordInTable(nametable, OR);
+    InsertKeywordInTable(nametable, LESS);
+    InsertKeywordInTable(nametable, LESSEQUAL);
+    InsertKeywordInTable(nametable, GREATER);
+    InsertKeywordInTable(nametable, NOT_EQUAL);
+    InsertKeywordInTable(nametable, GREATEREQUAL);
+    InsertKeywordInTable(nametable, EQUAL);
+    InsertKeywordInTable(nametable, RETURN);
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+nametable_t* MakeNametable()
+{
+    nametable_t* names = (nametable_t*) calloc(1, sizeof(nametable_t));
+
+    assert(names);
+
+    NametableCtor(names);
+
+    return names;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
 void NametableCtor(nametable_t* nametable)
 {
     assert(nametable);
