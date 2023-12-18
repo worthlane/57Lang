@@ -103,7 +103,7 @@ void NametableDtor(nametable_t* nametable)
 
 //-----------------------------------------------------------------------------------------------------
 
-void DumpNametable(FILE* fp, nametable_t* nametable)
+void DumpNametable(FILE* fp, const nametable_t* nametable)
 {
     assert(nametable);
     assert(nametable->list);
@@ -114,6 +114,23 @@ void DumpNametable(FILE* fp, nametable_t* nametable)
     {
         if (nametable->list[i].name != nullptr)
             fprintf(fp, "\"%s\"[%d]\n", nametable->list[i].name, i);
+    }
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+void CopyNametable(const nametable_t* nametable, nametable_t* dest)
+{
+    assert(nametable);
+    assert(dest);
+
+    dest->size     = nametable->size;
+    dest->capacity = nametable->capacity;
+
+    for (int i = 0; i < nametable->size; i++)
+    {
+        dest->list[i].type = nametable->list[i].type;
+        dest->list[i].name = strndup(nametable->list[i].name, MAX_NAME_LEN);
     }
 }
 

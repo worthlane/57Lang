@@ -118,7 +118,9 @@ nametable_t* MakeNametable();
 void         NametableCtor(nametable_t* nametable);
 void         NametableDtor(nametable_t* nametable);
 
-void DumpNametable(FILE* fp, nametable_t* nametable);
+void DumpNametable(FILE* fp, const nametable_t* nametable);
+
+void CopyNametable(const nametable_t* nametable, nametable_t* dest);
 
 int InsertNameInTable(nametable_t* nametable, const char* name, const TokenType type = TokenType::NAME);
 bool FindNameInTable(const nametable_t* nametable, const char* name, bool* exists, bool* is_func);

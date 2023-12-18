@@ -19,5 +19,6 @@ const char* GetFileName(const int argc, const char* argv[], const int id, const 
 FILE* OpenInputFile(const char* file_name, error_t* error);
 FILE* OpenOutputFile(const char* file_name, error_t* error);
 
+FILE* OpenFile(const char* file_name, const char* mode, error_t* error);
 
 #endif

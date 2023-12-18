@@ -118,7 +118,9 @@ void LinkNodesWithParents(Node* node);
 
 struct tree_t
 {
-    Node* root;
+    Node*        root;
+
+    nametable_t  names;
 };
 
 TreeErrors          TreeCtor(tree_t* tree, error_t* error);

@@ -124,6 +124,24 @@ FILE* OpenOutputFile(const char* file_name, error_t* error)
 
 //-----------------------------------------------------------------------------------------------------
 
+FILE* OpenFile(const char* file_name, const char* mode, error_t* error)
+{
+    assert(file_name);
+    assert(error);
+    assert(mode);
+
+    FILE* fp = fopen(file_name, mode);
+    if (!fp)
+    {
+        error->code = (int) ERRORS::OPEN_FILE;
+        error->data = file_name;
+    }
+
+    return fp;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
 const char* GetFileName(const int argc, const char* argv[], const int id, const char* mode, error_t* error)
 {
     assert(error);

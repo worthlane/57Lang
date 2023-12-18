@@ -1,7 +1,12 @@
 #include "tree.h"
 #include "visual.h"
 
+static const char* TREE_FILE = "assets/tmp.txt";
+static const char* NIL       = "nil";
+
 void PrintOperator(FILE* fp, const Operators sign);
+
+void PrintInfixTree(FILE* fp, const tree_t* tree);
 
 // ======================================================================
 // EXPRESSION TREE NODES
@@ -18,6 +23,7 @@ int   NodeDump(FILE* fp, const void* dumping_node, const char* func, const char*
                             } while(0)
 
 void  PrintNodeData(FILE* fp, const tree_t* tree, const Node* node);
+void  PrintSyncNodeData(FILE* fp, const tree_t* tree, const Node* node);
 
 // ======================================================================
 // EXPRESSION STRUCT

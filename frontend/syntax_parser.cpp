@@ -193,7 +193,9 @@ void GetTreeFromTokens(Tokens* tokens, tree_t* tree, error_t* error)
     syn.ptr = 0;
     syn.tokens = tokens;
 
-    tree->root = GetProgram(&syn, error);
+    tree->root  = GetProgram(&syn, error);
+
+    CopyNametable(&(tokens->all_names), &(tree->names));
 }
 
 // -------------------------------------------------------------

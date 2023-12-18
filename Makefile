@@ -20,16 +20,14 @@ CXXFLAGS += -I $(HOME)
 IMAGE = img
 BUILD_DIR = build/bin
 OBJECTS_DIR = build
-SOURCES = main.cpp
 EXPRESSION_SOURCES = tree.cpp visual.cpp tree_output.cpp
 EXPRESSION_DIR = tree
-FRONTEND_SOURCES = analysis.cpp syntax_parser.cpp frontend.cpp
+FRONTEND_SOURCES = analysis.cpp syntax_parser.cpp frontend.cpp main.cpp
 FRONTEND_DIR = frontend
 COMMON_SOURCES = logs.cpp errors.cpp input_and_output.cpp file_read.cpp
 COMMON_DIR = common
 STACK_SOURCES = stack.cpp hash.cpp nametable.cpp
 STACK_DIR = stack
-OBJECTS = $(SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 EXPRESSION_OBJECTS = $(EXPRESSION_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 COMMON_OBJECTS = $(COMMON_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 FRONTEND_OBJECTS = $(FRONTEND_SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
@@ -40,11 +38,8 @@ DOXYBUILD = doxygen $(DOXYFILE)
 .PHONY: all
 all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS) $(EXPRESSION_OBJECTS) $(COMMON_OBJECTS) $(FRONTEND_OBJECTS) $(STACK_OBJECTS)
+$(EXECUTABLE): $(EXPRESSION_OBJECTS) $(COMMON_OBJECTS) $(FRONTEND_OBJECTS) $(STACK_OBJECTS)
 	$(CXX) $^ -o $@ $(CXXFLAGS)
-
-$(OBJECTS_DIR)/%.o : %.cpp
-	$(CXX) -c $^ -o $@ $(CXXFLAGS)
 
 $(OBJECTS_DIR)/%.o : $(COMMON_DIR)/%.cpp
 	$(CXX) -c $^ -o $@ $(CXXFLAGS)

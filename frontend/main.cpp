@@ -22,6 +22,9 @@ int main(const int argc, const char* argv[])
     FILE* fp = OpenInputFile(data_file, &error);
     EXIT_IF_ERROR(&error);
 
+    FILE* out_stream = OpenFile(TREE_FILE, "w", &error);
+    EXIT_IF_ERROR(&error);
+
     LinesStorage info = {};
     CreateTextStorage(&info, &error, data_file);
 
@@ -38,5 +41,14 @@ int main(const int argc, const char* argv[])
     GetTreeFromTokens(&storage, &tree, &error);
     EXIT_IF_FRONTEND_ERROR;
 
+    PrintInfixTree(out_stream, &tree);
+
     DUMP_TREE(&tree);
+
+    TokensStorageDtor(&storage);
+    DestructTextStorage(&info);
+    TreeDtor(&tree);
+
+    fclose(out_stream);
+    fclose(fp);
 }

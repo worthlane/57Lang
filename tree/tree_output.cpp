@@ -6,6 +6,8 @@
 
 static void PrintNodeDataType(FILE* fp, const NodeType type);
 
+static void NodesInfixPrint(FILE* fp, const tree_t* tree, const Node* node);
+
 // ======================================================================
 // GRAPH BUILDING
 // ======================================================================
@@ -55,7 +57,6 @@ void PrintOperator(FILE* fp, const Operators sign)
 {
     switch (sign)
     {
-
         CHECK_OP(ADD);
         CHECK_OP(SUB);
         CHECK_OP(MUL);
@@ -129,13 +130,40 @@ void PrintNodeData(FILE* fp, const tree_t* tree, const Node* node)
     switch(node->type)
     {
         case (NodeType::NUM):
-            fprintf(fp, "%d", node->value.val);
+            fprintf(fp, " %d ", node->value.val);
             break;
         case (NodeType::VAR):
-            fprintf(fp, "[%d]", node->value.var);
+            fprintf(fp, " %s ", tree->names.list[node->value.var].name);
             break;
         case (NodeType::OP):
+            fprintf(fp, " ");
             PrintOperator(fp, node->value.opt);
+            fprintf(fp, " ");
+            break;
+        default:
+            fprintf(fp, " undefined ");
+    }
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+void PrintSyncNodeData(FILE* fp, const tree_t* tree, const Node* node)
+{
+    if (!node)
+        return;
+
+    switch(node->type)
+    {
+        case (NodeType::NUM):
+            fprintf(fp, " %d ", node->value.val);
+            break;
+        case (NodeType::VAR):
+            fprintf(fp, " _%s_ ", tree->names.list[node->value.var].name);
+            break;
+        case (NodeType::OP):
+            fprintf(fp, " ");
+            PrintOperator(fp, node->value.opt);
+            fprintf(fp, " ");
             break;
         default:
             fprintf(fp, " undefined ");
@@ -157,6 +185,33 @@ int TreeDump(FILE* fp, const void* nodes, const char* func, const char* file, co
     LOG_END();
 
     return (int) TreeErrors::NONE;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+void PrintInfixTree(FILE* fp, const tree_t* tree)
+{
+    assert(tree);
+
+    NodesInfixPrint(fp, tree, tree->root);
+    fprintf(fp, "\n");
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static void NodesInfixPrint(FILE* fp, const tree_t* tree, const Node* node)
+{
+    if (!node) { fprintf(fp, " "); fprintf(fp, NIL); fprintf(fp, " "); return; }
+
+    fprintf(fp, "(");
+    NodesInfixPrint(fp, tree, node->left);
+    fprintf(fp, ")");
+
+    PrintSyncNodeData(fp, tree, node);
+
+    fprintf(fp, "(");
+    NodesInfixPrint(fp, tree, node->right);
+    fprintf(fp, ")");
 }
 
 //-----------------------------------------------------------------------------------------------------

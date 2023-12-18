@@ -104,6 +104,8 @@ TreeErrors TreeCtor(tree_t* expr, error_t* error)
 {
     Node* root = MakeNode(NodeType::POISON, ZERO_VALUE, nullptr, nullptr, nullptr);
 
+    NametableCtor(&(expr->names));
+
     expr->root = root;
 
     return TreeErrors::NONE;
@@ -136,6 +138,8 @@ tree_t* MakeTree(error_t* error)
 void TreeDtor(tree_t* expr)
 {
     DestructNodes(expr->root);
+
+    NametableDtor(&(expr->names));
 
     expr->root = nullptr;
 }
