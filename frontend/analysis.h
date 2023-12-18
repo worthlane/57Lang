@@ -14,14 +14,7 @@ static const size_t DEFAULT_TOKENS_AMT = 500;
 // TOKEN
 // ======================================================================
 
-struct token_t
-{
-    NodeType  type;
-    NodeValue info;
-    size_t    line;
-};
-
-void FillToken(token_t* token, const NodeType type, const NodeValue info, const size_t line);
+void FillToken(token_t* token, const TokenType type, const TokenValue info, const size_t line);
 
 void DumpToken(FILE* fp, token_t* token);
 
@@ -34,7 +27,7 @@ struct Tokens
     token_t*    array;
     size_t      size;
 
-    nametable_t names;
+    nametable_t all_names;
 };
 
 void SyntaxStorageCtor(Tokens* storage);

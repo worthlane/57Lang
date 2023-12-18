@@ -37,7 +37,7 @@
 #endif
 #define SKIP_BREAKS     do                                                                                      \
                         {                                                                                       \
-                            while(CUR_TOKEN.info.opt == Operators::BREAK && CUR_TOKEN.type == NodeType::OP)       \
+                            while(CUR_TOKEN.info.opt == Operators::BREAK && CUR_TOKEN.type == TokenType::TOKEN)       \
                             {                                                   \
                                 INCREASE_PTR;                                   \
                             }                                                   \
@@ -186,7 +186,7 @@ static Node* GetProgram(ParserState* storage, error_t* error)
 
     Node* funcs = nullptr;
 
-    SYN_ASSERT(IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == NodeType::OP);
+    SYN_ASSERT(IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == TokenType::TOKEN);
 
     funcs = DefFunc(storage, error);
     NULL_IF_ERR;
@@ -196,7 +196,7 @@ static Node* GetProgram(ParserState* storage, error_t* error)
 
     SKIP_BREAKS;
 
-    while (IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == NodeType::OP)
+    while (IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == TokenType::TOKEN)
     {
         Node* func = DefFunc(storage, error);
         NULL_IF_ERR;
@@ -209,7 +209,7 @@ static Node* GetProgram(ParserState* storage, error_t* error)
         funcs = MakeNode(NodeType::OP, {.opt = Operators::NEW_FUNC}, funcs, func);
     }
 
-    SYN_ASSERT(CUR_TOKEN.info.opt == Operators::END && CUR_TOKEN.type == NodeType::OP);
+    SYN_ASSERT(CUR_TOKEN.info.opt == Operators::END && CUR_TOKEN.type == TokenType::TOKEN);
 
     return funcs;
 }
@@ -224,26 +224,26 @@ static Node* DefFunc(ParserState* storage, error_t* error)
     Node* type = GetType(storage, error);
     NULL_IF_ERR;
 
-    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::L_BRACKET);
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::L_BRACKET);
 
     Node* name = GetVar(storage, error);    // TODO make name
     NULL_IF_ERR;
 
-    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::L_BRACKET);
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::L_BRACKET);
 
     Node* vars = GetFuncVars(storage, error);
     NULL_IF_ERR;
 
-    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::R_BRACKET);
-    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::R_BRACKET);
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::R_BRACKET);
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::R_BRACKET);
 
     SKIP_BREAKS;
 
-    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::FUNC_WALL);
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::FUNC_WALL);
 
     Node* action = GetSubProgram(storage, error);
 
-    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::FUNC_WALL);
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::FUNC_WALL);
 
     ConnectNodes(name, vars, action);
 
@@ -282,12 +282,12 @@ static Node* GetOneFuncVar(ParserState* storage, error_t* error)
     Node* type = GetType(storage, error);
     NULL_IF_ERR;
 
-    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::L_BRACKET);
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::L_BRACKET);
 
     Node* var = GetVar(storage, error);
     NULL_IF_ERR;
 
-    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::R_BRACKET);
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::R_BRACKET);
 
     Node* fictive_connect = MakeNode(NodeType::OP, {.opt = Operators::TYPE}, type, var);
 
@@ -303,12 +303,12 @@ static Node* GetFuncVars(ParserState* storage, error_t* error)
 
     Node* vars = nullptr;
 
-    if (!(IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == NodeType::OP)) { return nullptr; }
+    if (!(IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == TokenType::TOKEN)) { return nullptr; }
 
     vars = GetOneFuncVar(storage, error);
     NULL_IF_ERR;
 
-    while (CUR_TOKEN.info.opt == Operators::COMMA && CUR_TOKEN.type == NodeType::OP)
+    while (CUR_TOKEN.info.opt == Operators::COMMA && CUR_TOKEN.type == TokenType::TOKEN)
     {
         INCREASE_PTR;
 
@@ -330,14 +330,14 @@ static Node* CallVars(ParserState* storage, error_t* error)
 
     Node* vars = nullptr;
 
-    CONSUME(CUR_TOKEN.info.opt == Operators::L_BRACKET && CUR_TOKEN.type == NodeType::OP);
+    CONSUME(CUR_TOKEN.info.opt == Operators::L_BRACKET && CUR_TOKEN.type == TokenType::TOKEN);
 
-    if (CUR_TOKEN.info.opt == Operators::R_BRACKET && CUR_TOKEN.type == NodeType::OP) { return nullptr; }
+    if (CUR_TOKEN.info.opt == Operators::R_BRACKET && CUR_TOKEN.type == TokenType::TOKEN) { return nullptr; }
 
     vars = GetExpression(storage, error);
     NULL_IF_ERR;
 
-    while (CUR_TOKEN.info.opt == Operators::COMMA && CUR_TOKEN.type == NodeType::OP)
+    while (CUR_TOKEN.info.opt == Operators::COMMA && CUR_TOKEN.type == TokenType::TOKEN)
     {
         INCREASE_PTR;
 
@@ -347,7 +347,7 @@ static Node* CallVars(ParserState* storage, error_t* error)
         vars = MakeNode(NodeType::OP, {.opt = Operators::COMMA}, vars, var);
     }
 
-    CONSUME(CUR_TOKEN.info.opt == Operators::R_BRACKET && CUR_TOKEN.type == NodeType::OP);
+    CONSUME(CUR_TOKEN.info.opt == Operators::R_BRACKET && CUR_TOKEN.type == TokenType::TOKEN);
 
     return vars;
 }
@@ -356,7 +356,7 @@ static Node* CallVars(ParserState* storage, error_t* error)
 
 static Node* GetBreak(ParserState* storage, error_t* error)
 {
-    CONSUME(CUR_TOKEN.type     == NodeType::OP &&
+    CONSUME(CUR_TOKEN.type     == TokenType::TOKEN &&
             CUR_TOKEN.info.opt == Operators::BREAK);
 
     Node* break_token = MakeNode(NodeType::OP, {.opt = Operators::BREAK});
@@ -368,7 +368,7 @@ static Node* GetBreak(ParserState* storage, error_t* error)
 
 static Node* GetType(ParserState* storage, error_t* error)
 {
-    SYN_ASSERT(IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == NodeType::OP);
+    SYN_ASSERT(IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == TokenType::TOKEN);
     Node* type = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
     INCREASE_PTR;
 
@@ -382,8 +382,8 @@ static Node* GetVar(ParserState* storage, error_t* error)
     assert(storage);
     assert(error);
 
-    SYN_ASSERT(CUR_TOKEN.type == NodeType::VAR);
-    Node* var = MakeNode(NodeType::VAR, {.var = CUR_TOKEN.info.var});
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::NAME);
+    Node* var = MakeNode(NodeType::VAR, {.var = CUR_TOKEN.info.name_id});
     INCREASE_PTR;
 
     return var;
@@ -396,7 +396,7 @@ static Node* GetNum(ParserState* storage, error_t* error)
     assert(storage);
     assert(error);
 
-    SYN_ASSERT(CUR_TOKEN.type == NodeType::NUM);
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::NUM);
 
     Node* var = MakeNode(NodeType::NUM, {.val = CUR_TOKEN.info.val});
 
@@ -412,12 +412,12 @@ static Node* GetInit(ParserState* storage, error_t* error)
     Node* type = GetType(storage, error);
     NULL_IF_ERR;
 
-    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::L_BRACKET);
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::L_BRACKET);
 
     Node* assign = GetAssignment(storage, error);
     NULL_IF_ERR;
 
-    CONSUME(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::R_BRACKET);
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::R_BRACKET);
 
     Node* fictive_connect = MakeNode(NodeType::OP, {.opt = Operators::TYPE}, type, assign);
 
@@ -478,23 +478,23 @@ static Node* GetLine(ParserState* storage, error_t* error)
     // TODO if (peek(storagr, NodeType::IF))
     // TODO if (PEEK(NodeType::IF))
     // TODO if (storage->peek(NodeType::IF))
-    if (CUR_TOKEN.info.opt == Operators::IF && CUR_TOKEN.type == NodeType::OP)
+    if (CUR_TOKEN.info.opt == Operators::IF && CUR_TOKEN.type == TokenType::TOKEN)
     {
         val = GetIfSection(storage, error);
     }
-    else if (CUR_TOKEN.info.opt == Operators::WHILE && CUR_TOKEN.type == NodeType::OP)
+    else if (CUR_TOKEN.info.opt == Operators::WHILE && CUR_TOKEN.type == TokenType::TOKEN)
     {
         val = GetWhileSection(storage, error);
     }
-    else if (CUR_TOKEN.info.opt == Operators::RETURN && CUR_TOKEN.type == NodeType::OP)
+    else if (CUR_TOKEN.info.opt == Operators::RETURN && CUR_TOKEN.type == TokenType::TOKEN)
     {
         val = GetReturn(storage, error);
     }
-    else if (IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == NodeType::OP)
+    else if (IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == TokenType::TOKEN)
     {
         val = GetInit(storage, error);
     }
-    else if (CUR_TOKEN.type == NodeType::VAR)
+    else if (CUR_TOKEN.type == TokenType::NAME)
     {
         val = GetAssignment(storage, error);
     }
@@ -522,17 +522,17 @@ static Node* GetIfSection(ParserState* storage, error_t* error)
 
     SKIP_BREAKS;
 
-    SYN_ASSERT(CUR_TOKEN.info.opt == Operators::IF && CUR_TOKEN.type == NodeType::OP);
+    SYN_ASSERT(CUR_TOKEN.info.opt == Operators::IF && CUR_TOKEN.type == TokenType::TOKEN);
     Node* if_token = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
     INCREASE_PTR;
 
-    CONSUME(CUR_TOKEN.type     == NodeType::OP &&
+    CONSUME(CUR_TOKEN.type     == TokenType::TOKEN &&
             CUR_TOKEN.info.opt == Operators::L_BRACKET);
 
     Node* cond = GetExpression(storage, error);
     NULL_IF_ERR;
 
-    CONSUME(CUR_TOKEN.type     == NodeType::OP &&
+    CONSUME(CUR_TOKEN.type     == TokenType::TOKEN &&
             CUR_TOKEN.info.opt == Operators::R_BRACKET);
 
     SKIP_BREAKS;
@@ -542,7 +542,7 @@ static Node* GetIfSection(ParserState* storage, error_t* error)
 
     ConnectNodes(if_token, cond, action);
 
-    CONSUME(CUR_TOKEN.type     == NodeType::OP &&
+    CONSUME(CUR_TOKEN.type     == TokenType::TOKEN &&
             CUR_TOKEN.info.opt == Operators::CLOSE_BLOCK);
 
     return if_token;
@@ -557,17 +557,17 @@ static Node* GetWhileSection(ParserState* storage, error_t* error)
 
     SKIP_BREAKS;
 
-    SYN_ASSERT(CUR_TOKEN.info.opt == Operators::WHILE && CUR_TOKEN.type == NodeType::OP);
+    SYN_ASSERT(CUR_TOKEN.info.opt == Operators::WHILE && CUR_TOKEN.type == TokenType::TOKEN);
     Node* while_token = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
     INCREASE_PTR;
 
-    CONSUME(CUR_TOKEN.type     == NodeType::OP &&
+    CONSUME(CUR_TOKEN.type     == TokenType::TOKEN &&
             CUR_TOKEN.info.opt == Operators::L_BRACKET);
 
     Node* cond = GetExpression(storage, error);
     NULL_IF_ERR;
 
-    CONSUME(CUR_TOKEN.type     == NodeType::OP &&
+    CONSUME(CUR_TOKEN.type     == TokenType::TOKEN &&
             CUR_TOKEN.info.opt == Operators::R_BRACKET);
 
     SKIP_BREAKS;
@@ -577,7 +577,7 @@ static Node* GetWhileSection(ParserState* storage, error_t* error)
 
     ConnectNodes(while_token, cond, action);
 
-    CONSUME(CUR_TOKEN.type     == NodeType::OP &&
+    CONSUME(CUR_TOKEN.type     == TokenType::TOKEN &&
             CUR_TOKEN.info.opt == Operators::CLOSE_BLOCK);
 
     return while_token;
@@ -595,7 +595,7 @@ static Node* GetAssignment(ParserState* storage, error_t* error)
     Node* var = GetVar(storage, error);
     NULL_IF_ERR;
 
-    SYN_ASSERT(CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::ASSIGN);
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::ASSIGN);
     Node* assign = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
     INCREASE_PTR;
 
@@ -616,7 +616,7 @@ static Node* GetReturn(ParserState* storage, error_t* error)
 
     SKIP_BREAKS;
 
-    SYN_ASSERT(CUR_TOKEN.info.opt == Operators::RETURN && CUR_TOKEN.type == NodeType::OP);
+    SYN_ASSERT(CUR_TOKEN.info.opt == Operators::RETURN && CUR_TOKEN.type == TokenType::TOKEN);
     Node* ret = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
     INCREASE_PTR;
 
@@ -638,7 +638,7 @@ static Node* GetExpression(ParserState* storage, error_t* error)
     Node* val = GetAndOperand(storage, error);
     NULL_IF_ERR;
 
-    while (CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::OR)
+    while (CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::OR)
     {
         Node* op = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
         INCREASE_PTR;
@@ -663,7 +663,7 @@ static Node* GetAndOperand(ParserState* storage, error_t* error)
     Node* val = GetComparison(storage, error);
     NULL_IF_ERR;
 
-    while (CUR_TOKEN.type == NodeType::OP && CUR_TOKEN.info.opt == Operators::AND)
+    while (CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::AND)
     {
         Node* op = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
         INCREASE_PTR;
@@ -687,7 +687,7 @@ static Node* GetComparison(ParserState* storage, error_t* error)
     Node* val = GetSumm(storage, error);
     NULL_IF_ERR;
 
-    if (CUR_TOKEN.type == NodeType::OP &&
+    if (CUR_TOKEN.type == TokenType::TOKEN &&
        (CUR_TOKEN.info.opt == Operators::LESS         || CUR_TOKEN.info.opt == Operators::LESSEQUAL ||
         CUR_TOKEN.info.opt == Operators::EQUAL        || CUR_TOKEN.info.opt == Operators::GREATER   ||
         CUR_TOKEN.info.opt == Operators::GREATEREQUAL || CUR_TOKEN.info.opt == Operators::NOT_EQUAL))
@@ -714,7 +714,7 @@ static Node* GetSumm(ParserState* storage, error_t* error)
     Node* val = GetTerm(storage, error);
     NULL_IF_ERR;
 
-    while (CUR_TOKEN.type     == NodeType::OP  &&
+    while (CUR_TOKEN.type     == TokenType::TOKEN  &&
           (CUR_TOKEN.info.opt == Operators::ADD ||
            CUR_TOKEN.info.opt == Operators::SUB))
     {
@@ -739,7 +739,7 @@ static Node* GetTerm(ParserState* storage, error_t* error)
     Node* val = GetDegree(storage, error);
     NULL_IF_ERR;
 
-    while (CUR_TOKEN.type     == NodeType::OP  &&
+    while (CUR_TOKEN.type     == TokenType::TOKEN  &&
           (CUR_TOKEN.info.opt == Operators::DIV ||
            CUR_TOKEN.info.opt == Operators::MUL))
     {
@@ -764,7 +764,7 @@ static Node* GetDegree(ParserState* storage, error_t* error)
     Node* val = GetTrigonometry(storage, error);
     NULL_IF_ERR;
 
-    while (CUR_TOKEN.type     == NodeType::OP &&
+    while (CUR_TOKEN.type     == TokenType::TOKEN &&
            CUR_TOKEN.info.opt == Operators::DEG)
     {
         Node* op = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
@@ -785,7 +785,7 @@ static Node* GetTrigonometry(ParserState* storage, error_t* error)
     assert(error);
     assert(storage);
 
-    if (CUR_TOKEN.type     == NodeType::OP &&
+    if (CUR_TOKEN.type     == TokenType::TOKEN &&
        (CUR_TOKEN.info.opt == Operators::SIN    ||
         CUR_TOKEN.info.opt == Operators::COS))
     {
@@ -812,14 +812,14 @@ static Node* GetBrackets(ParserState* storage, error_t* error)
     assert(error);
     assert(storage);
 
-    if (CUR_TOKEN.type     == NodeType::OP &&
+    if (CUR_TOKEN.type     == TokenType::TOKEN &&
         CUR_TOKEN.info.opt == Operators::L_BRACKET)
     {
         INCREASE_PTR;
         Node* val = GetExpression(storage, error);
         NULL_IF_ERR;
 
-        SYN_ASSERT(CUR_TOKEN.type     == NodeType::OP &&
+        SYN_ASSERT(CUR_TOKEN.type     == TokenType::TOKEN &&
                    CUR_TOKEN.info.opt == Operators::R_BRACKET);
         INCREASE_PTR;
 
@@ -840,22 +840,22 @@ static Node* GetComponent(ParserState* storage, error_t* error)
 
     Node* val = nullptr;
 
-    if  (CUR_TOKEN.type     == NodeType::OP  &&
+    if  (CUR_TOKEN.type     == TokenType::TOKEN  &&
         (CUR_TOKEN.info.opt == Operators::ADD ||
          CUR_TOKEN.info.opt == Operators::SUB))
     {
         Node* op = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
         INCREASE_PTR;
 
-        SYN_ASSERT(CUR_TOKEN.type == NodeType::NUM || CUR_TOKEN.type == NodeType::VAR);
+        SYN_ASSERT(CUR_TOKEN.type == TokenType::NUM || CUR_TOKEN.type == TokenType::NAME);
 
         Node* num = nullptr;
 
-        if (CUR_TOKEN.type == NodeType::NUM)
+        if (CUR_TOKEN.type == TokenType::NUM)
             num = GetNum(storage, error);
         else
         {
-            if (NEXT_TOKEN.type == NodeType::OP && NEXT_TOKEN.info.opt == Operators::L_BRACKET)
+            if (NEXT_TOKEN.type == TokenType::TOKEN && NEXT_TOKEN.info.opt == Operators::L_BRACKET)
             {
                 Node* call_func = CallFunc(storage, error);
                 NULL_IF_ERR;
@@ -872,15 +872,15 @@ static Node* GetComponent(ParserState* storage, error_t* error)
     }
     else
     {
-        SYN_ASSERT(CUR_TOKEN.type == NodeType::NUM || CUR_TOKEN.type == NodeType::VAR);
+        SYN_ASSERT(CUR_TOKEN.type == TokenType::NUM || CUR_TOKEN.type == TokenType::NAME);
 
         Node* num = nullptr;
 
-        if (CUR_TOKEN.type == NodeType::NUM)
+        if (CUR_TOKEN.type == TokenType::NUM)
             num = GetNum(storage, error);
         else
         {
-            if (NEXT_TOKEN.type == NodeType::OP && NEXT_TOKEN.info.opt == Operators::L_BRACKET)
+            if (NEXT_TOKEN.type == TokenType::TOKEN && NEXT_TOKEN.info.opt == Operators::L_BRACKET)
             {
                 Node* call_func = CallFunc(storage, error);
                 NULL_IF_ERR;

@@ -67,7 +67,7 @@ static int InsertKeywordInTable(nametable_t* nametable, const char* name)
 {
     int id = InsertNameInTable(nametable, name);
 
-    nametable->list[id].type = NodeType::KEYWORD;
+    nametable->list[id].type = TokenType::TOKEN;
 
     return id;
 }
@@ -154,18 +154,18 @@ static FrontendErrors TokenizeWord(LinesStorage* text, Tokens* storage, error_t*
     char buffer[MAX_NAME_LEN] = "";
     ReadName(text, buffer);
 
-    int id = InsertNameInTable(&storage->names, buffer);
+    int id = InsertNameInTable(&storage->all_names, buffer);
 
-    if (storage->names.list[id].type == NodeType::KEYWORD)
+    if (storage->all_names.list[id].type == TokenType::TOKEN)
     {
-        Operators op    = TranslateKeywordToOperator(storage->names.list[id].name);
-        token->type     = NodeType::OP;
+        Operators op    = TranslateKeywordToOperator(storage->all_names.list[id].name);
+        token->type     = TokenType::TOKEN;
         token->info.opt = op;
     }
     else
     {
-        token->type     = storage->names.list[id].type;
-        token->info.var = id;
+        token->type         = storage->all_names.list[id].type;
+        token->info.name_id = id;
     }
 
     token->line = line;
@@ -204,7 +204,7 @@ static FrontendErrors TokenizeNumber(LinesStorage* text, Tokens* storage, error_
     }
     Bufungetc(text);
 
-    token->type     = NodeType::NUM;
+    token->type     = TokenType::NUM;
     token->info.val = val;
     token->line     = line;
     storage->size++;
@@ -252,7 +252,7 @@ static FrontendErrors TokenizeOperator(LinesStorage* text, Tokens* storage, erro
 
     token->info.opt = op;
     token->line     = line;
-    token->type     = NodeType::OP;
+    token->type     = TokenType::TOKEN;
 
     storage->size++;
 
@@ -454,7 +454,7 @@ static CharType GetCharType(const int ch)
 
 //-----------------------------------------------------------------------------------------------------
 
-void FillToken(token_t* token, const NodeType type, const NodeValue info, const size_t line)
+void FillToken(token_t* token, const TokenType type, const TokenValue info, const size_t line)
 {
     assert(token);
 
@@ -473,31 +473,36 @@ void DumpToken(FILE* fp, token_t* token)
 
     switch (token->type)
     {
-        case NodeType::KEYWORD:
-            fprintf(fp, "TYPE > KEYWORD\n"
-                        "ID   > %d\n"
-                        "LINE > %d\n"
-                        "---------------\n", token->info.var, token->line);
-            return;
-        case NodeType::NUM:
+        case TokenType::NUM:
             fprintf(fp, "TYPE > NUMBER\n"
                         "VAL  > %d\n"
                         "LINE > %d\n"
                         "---------------\n", token->info.val, token->line);
             return;
-        case NodeType::OP:
-            fprintf(fp, "TYPE > OPERATOR ");
+        case TokenType::TOKEN:
+            fprintf(fp, "TYPE > TOKEN ");
             PrintOperator(fp, token->info.opt);
             fprintf(fp, "\nLINE > %d\n"
                         "---------------\n", token->line);
             return;
-        case NodeType::VAR:
-            fprintf(fp, "TYPE > VARIABLE\n"
+        case TokenType::NAME:
+            fprintf(fp, "TYPE > NAME\n"
                         "ID   > %d\n"
                         "LINE > %d\n"
-                        "---------------\n", token->info.var, token->line);
+                        "---------------\n", token->info.name_id, token->line);
             return;
-        case NodeType::POISON:
+        case TokenType::FUNC_NAME:
+            fprintf(fp, "TYPE > FUNC NAME\n"
+                        "ID   > %d\n"
+                        "LINE > %d\n"
+                        "---------------\n", token->info.name_id, token->line);
+            return;
+        case TokenType::VAR_NAME:
+            fprintf(fp, "TYPE > VAR NAME\n"
+                        "ID   > %d\n"
+                        "LINE > %d\n"
+                        "---------------\n", token->info.name_id, token->line);
+            return;
         default:
             fprintf(fp, "POISONED TOKEN\n"
                         "---------------\n");
@@ -518,7 +523,7 @@ void SyntaxStorageCtor(Tokens* storage)
     storage->array = tokens;
     storage->size   = 0;
 
-    MakeGlobalNametable(&storage->names);
+    MakeGlobalNametable(&storage->all_names);
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -531,7 +536,7 @@ void SyntaxStorageDtor(Tokens* storage)
 
     storage->size   = 0;
 
-    NametableDtor(&storage->names);
+    NametableDtor(&storage->all_names);
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -547,6 +552,6 @@ void DumpSyntaxStorage(FILE* fp, Tokens* storage)
         fprintf(fp, "}\n");
     }
 
-    DumpNametable(fp, &storage->names);
+    DumpNametable(fp, &storage->all_names);
 }
 

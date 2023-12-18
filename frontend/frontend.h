@@ -53,59 +53,5 @@ int PrintFrontendError(FILE* fp, const void* err, const char* func, const char* 
                                                 return (FrontendErrors) (error)->code;                  \
                                             } while(0)
 
-// ======================================================================
-// KEYWORDS
-// ======================================================================
-
-static const char* IF           = "57?";
-static const char* ELSE         = "!57?";
-
-static const char* INPUT        = "57>>";
-static const char* OUTPUT       = "57<<";
-
-static const char* INT          = "57::";
-
-// static const char* MAIN         = "_0_";
-static const char* WHILE        = "1000_7";
-static const char* RETURN       = "~57";
-static const char* SIN          = "$1#";
-static const char* COS          = "<0$";
-static const char* ASSIGN       = ":=";
-static const char* GREATER      = ">";
-static const char* GREATEREQUAL = ">=";
-static const char* LESS         = "<";
-static const char* LESSEQUAL    = "<=";
-static const char* EQUAL        = "==";
-static const char* NOT_EQUAL    = "!=";
-static const char* AND          = "&&";
-static const char* OR           = "||";
-static const char* CLOSE_BLOCK  = ".57";
-static const char* END          = "@57@";
-
-static const char* FUNC_WALL    = "##################################################";
-
-Operators TranslateKeywordToOperator(const char* keyword);
-bool      IsType(const Operators type);
-
-// ======================================================================
-// WORD DIGITS FORMAT
-// ======================================================================
-
-enum Digits
-{
-    ZERO  = 0,
-    ONE   = 1,
-    TWO   = 2,
-    THREE = 3,
-    FOUR  = 4,
-    FIVE  = 5,
-    SIX   = 6,
-    SEVEN = 7,
-    EIGHT = 8,
-    NINE  = 9,
-
-    UNK = -1        // TODO unknown
-};
-
 
 #endif

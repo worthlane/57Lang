@@ -6,6 +6,8 @@
 #include "common/errors.h"
 #include "common/file_read.h"
 
+#include "stack/nametable.h"
+
 // ======================================================================
 // ERRORS
 // ======================================================================
@@ -48,71 +50,6 @@ int PrintTreeError(FILE* fp, const void* err, const char* func, const char* file
                                                     return error;                                       \
                                                 }                                                       \
                                             } while(0)
-
-// ======================================================================
-// OPERATORS
-// ======================================================================
-
-enum class Operators
-{
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    DEG,
-
-    ASSIGN,
-    SIN,
-    COS,
-    IF,
-    ELSE,
-    WHILE,
-
-    GREATER,
-    GREATEREQUAL,
-    LESS,
-    LESSEQUAL,
-    EQUAL,
-    NOT_EQUAL,
-    AND,
-    OR,
-
-    INPUT,
-    OUTPUT,
-
-    INT,
-
-    L_BRACKET,
-    R_BRACKET,
-    COMMA,
-    BREAK,
-    CLOSE_BLOCK,
-    FUNC_WALL,
-
-    RETURN,
-
-    END,
-
-    // FICTIVE OPERATORS:
-
-    FUNC_CALL,
-
-    TYPE,
-    NEW_FUNC,
-    FUNC,
-
-    UNK
-};
-
-static const char ADD       = '+';
-static const char SUB       = '-';
-static const char MUL       = '*';
-static const char DIV       = '/';
-static const char DEG       = '^';
-static const char L_BRACKET = '(';
-static const char R_BRACKET = ')';
-static const char COMMA     = ',';
-static const char BREAK     = '\n';
 
 // ======================================================================
 // NODES

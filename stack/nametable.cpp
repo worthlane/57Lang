@@ -70,7 +70,67 @@ int InsertNameInTable(nametable_t* nametable, const char* name)
     assert(inserted_name);
 
     nametable->list[nametable->size].name = inserted_name;
-    nametable->list[nametable->size].type = NodeType::VAR;
+    nametable->list[nametable->size].type = TokenType::NAME;
 
     return nametable->size++;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+#ifdef COMPARE_KEYWORD
+#undef COMPARE_KEYWORD
+#endif
+#define COMPARE_KEYWORD(op)                     \
+    if (!strncmp(keyword, op, MAX_NAME_LEN))   \
+    {                                           \
+        return Operators::op;                       \
+    }                                           \
+    else
+
+
+Operators TranslateKeywordToOperator(const char* keyword)  // TODO operators not like keyword
+{
+    if (!keyword) return Operators::UNK;
+
+    COMPARE_KEYWORD(SIN);
+    COMPARE_KEYWORD(COS);
+    COMPARE_KEYWORD(ASSIGN);
+    COMPARE_KEYWORD(IF);
+    COMPARE_KEYWORD(END);
+    COMPARE_KEYWORD(INPUT);
+    COMPARE_KEYWORD(OUTPUT);
+    COMPARE_KEYWORD(INT);
+    COMPARE_KEYWORD(ELSE);
+    COMPARE_KEYWORD(CLOSE_BLOCK);
+    COMPARE_KEYWORD(WHILE);
+    COMPARE_KEYWORD(GREATER);
+    COMPARE_KEYWORD(GREATEREQUAL);
+    COMPARE_KEYWORD(LESS);
+    COMPARE_KEYWORD(LESSEQUAL);
+    COMPARE_KEYWORD(EQUAL);
+    COMPARE_KEYWORD(NOT_EQUAL);
+    COMPARE_KEYWORD(RETURN);
+    COMPARE_KEYWORD(AND);
+    COMPARE_KEYWORD(OR);
+    COMPARE_KEYWORD(FUNC_WALL);
+
+    /* else */ return Operators::UNK;
+
+}
+
+#undef COMPARE_KEYWORD
+
+//-----------------------------------------------------------------------------------------------------
+
+bool IsType(const Operators type)
+{
+    switch (type)
+    {
+        case (Operators::INT):
+            return true;
+        default:
+            return false;
+    }
+
+    return false;
 }
