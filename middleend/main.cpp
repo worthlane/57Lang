@@ -6,6 +6,8 @@
 #include "tree/tree_output.h"
 #include "common/file_read.h"
 #include "common/input_and_output.h"
+#include "common/logs.h"
+#include "middleend.h"
 
 int main(const int argc, const char* argv[])
 {
@@ -24,6 +26,10 @@ int main(const int argc, const char* argv[])
 
     TreePrefixRead(&info, &tree, &error);
     EXIT_IF_TREE_ERROR(&error);
+
+    DUMP_TREE(&tree);
+
+    OptimizeTree(&tree, &error);
 
     DUMP_TREE(&tree);
 }
