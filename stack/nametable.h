@@ -104,6 +104,8 @@ struct name_t
     char*     name;
 
     TokenType type;
+
+    int       ram_id;
 };
 
 struct nametable_t
@@ -122,7 +124,7 @@ void DumpNametable(FILE* fp, const nametable_t* nametable);
 
 void CopyNametable(const nametable_t* nametable, nametable_t* dest);
 
-int InsertNameInTable(nametable_t* nametable, const char* name, const TokenType type = TokenType::NAME);
+int  InsertNameInTable(nametable_t* nametable, const char* name, const TokenType type = TokenType::NAME);
 bool FindNameInTable(const nametable_t* nametable, const char* name, bool* exists, bool* is_func);
 
 // ======================================================================

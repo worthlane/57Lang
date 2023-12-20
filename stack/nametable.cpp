@@ -362,3 +362,6 @@ bool FindNameInTable(const nametable_t* nametable, const char* name, bool* exist
 
     return false;
 }
+
+
+
