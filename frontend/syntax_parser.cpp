@@ -47,7 +47,7 @@
 #endif
 #define SKIP_BREAKS     do                                                                                      \
                         {                                                                                       \
-                            while(CUR_TOKEN.info.opt == Operators::BREAK && CUR_TOKEN.type == TokenType::TOKEN)       \
+                            while(CUR_TOKEN.info.opt == Operators::LINE_END && CUR_TOKEN.type == TokenType::TOKEN)       \
                             {                                                   \
                                 INCREASE_PTR;                                   \
                             }                                                   \
@@ -118,16 +118,19 @@
 static void TryInsertNameInStack(const Stack_t* stk, const char* str,
                                  bool* exists, bool* is_func, const TokenType type);
 
+// Print            ::= PRINT Name
+// Read             ::= READ Name
+
 
 // Program          ::= DefFunc Break {DefFunc Break}* END
-// DefFunc          ::= Type NewFuncName L_BRACKET FuncVars R_BRACKET {BREAK}* FUNC_WALL SubProgram FUNC_WALL
+// DefFunc          ::= Type NewFuncName L_BRACKET FuncVars R_BRACKET {LINE_END}* FUNC_WALL SubProgram FUNC_WALL
 // CallVars         ::= L_BRACKET Expr { [,] Expr }* R_BRACKET
 // CallFunc         ::= Name CallVars
 // FuncVars         ::= OneFuncVar { [,] OneFuncVar }*
 // OneFuncVar       ::= Type L_BRACKET Var R_BRACKET
 // SubProgram       ::= Block
-// WhileSection     ::= WHILE L_BRACKET Expression R_BRACKET {BREAK}* Block CLOSE_BLOCK
-// IfSection        ::= IF    L_BRACKET Expression R_BRACKET {BREAK}* Block CLOSE_BLOCK
+// WhileSection     ::= WHILE L_BRACKET Expression R_BRACKET {LINE_END}* Block BLOCK_END
+// IfSection        ::= IF    L_BRACKET Expression R_BRACKET {LINE_END}* Block BLOCK_END
 // Block            ::= {Line Break}*
 // Line             ::= {IfSection | WhileSection | Return | Assignment | Init }*
 // Init             ::= TYPE L_BRACKET InitialAssignment R_BRACKET
@@ -143,9 +146,12 @@ static void TryInsertNameInStack(const Stack_t* stk, const char* str,
 // Brackets         ::= L_BRACKET Expression R_BRACKET | Component
 // Component        ::= [+ -] (Name | Num | CallFunc)
 // Type             ::= TYPE
-// Break            ::= BREAK
+// Break            ::= LINE_END
 // Name             ::= NAME
 // Num              ::= NUM
+
+static Node* GetPrint(ParserState* storage, error_t* error);
+static Node* GetRead(ParserState* storage, error_t* error);
 
 static Node* GetNewVar(ParserState* storage, error_t* error);
 static Node* GetOldVar(ParserState* storage, error_t* error);
@@ -276,6 +282,9 @@ static Node* GetOldVar(ParserState* storage, error_t* error)
     SYN_ASSERT(CUR_TOKEN.type == TokenType::NAME);
 
     Node* var = MakeNode(NodeType::VAR, {.var = CUR_TOKEN.info.name_id});
+
+    if (storage->tokens->all_names.list[CUR_TOKEN.info.name_id].name[0] == '\"')
+        return var;
 
     bool exists = false;
     bool is_func = false;
@@ -514,9 +523,9 @@ static Node* CallVars(ParserState* storage, error_t* error)
 static Node* GetBreak(ParserState* storage, error_t* error)
 {
     CONSUME(CUR_TOKEN.type     == TokenType::TOKEN &&
-            CUR_TOKEN.info.opt == Operators::BREAK);
+            CUR_TOKEN.info.opt == Operators::LINE_END);
 
-    Node* break_token = MakeNode(NodeType::OP, {.opt = Operators::BREAK});
+    Node* break_token = MakeNode(NodeType::OP, {.opt = Operators::LINE_END});
 
     return break_token;
 }
@@ -654,6 +663,14 @@ static Node* GetLine(ParserState* storage, error_t* error)
     {
         val = GetReturn(storage, error);
     }
+    else if (CUR_TOKEN.info.opt == Operators::READ && CUR_TOKEN.type == TokenType::TOKEN)
+    {
+        val = GetRead(storage, error);
+    }
+    else if (CUR_TOKEN.info.opt == Operators::PRINT && CUR_TOKEN.type == TokenType::TOKEN)
+    {
+        val = GetPrint(storage, error);
+    }
     else if (IsType(CUR_TOKEN.info.opt) && CUR_TOKEN.type == TokenType::TOKEN)
     {
         val = GetInit(storage, error);
@@ -707,7 +724,7 @@ static Node* GetIfSection(ParserState* storage, error_t* error)
     ConnectNodes(if_token, cond, action);
 
     CONSUME(CUR_TOKEN.type     == TokenType::TOKEN &&
-            CUR_TOKEN.info.opt == Operators::CLOSE_BLOCK);
+            CUR_TOKEN.info.opt == Operators::BLOCK_END);
 
     return if_token;
 }
@@ -742,7 +759,7 @@ static Node* GetWhileSection(ParserState* storage, error_t* error)
     ConnectNodes(while_token, cond, action);
 
     CONSUME(CUR_TOKEN.type     == TokenType::TOKEN &&
-            CUR_TOKEN.info.opt == Operators::CLOSE_BLOCK);
+            CUR_TOKEN.info.opt == Operators::BLOCK_END);
 
     return while_token;
 }
@@ -877,9 +894,9 @@ static Node* GetComparison(ParserState* storage, error_t* error)
     NULL_IF_ERR;
 
     if (CUR_TOKEN.type == TokenType::TOKEN &&
-       (CUR_TOKEN.info.opt == Operators::LESS         || CUR_TOKEN.info.opt == Operators::LESSEQUAL ||
-        CUR_TOKEN.info.opt == Operators::EQUAL        || CUR_TOKEN.info.opt == Operators::GREATER   ||
-        CUR_TOKEN.info.opt == Operators::GREATEREQUAL || CUR_TOKEN.info.opt == Operators::NOT_EQUAL))
+       (CUR_TOKEN.info.opt == Operators::LESS         || CUR_TOKEN.info.opt == Operators::LESS_EQ ||
+        CUR_TOKEN.info.opt == Operators::EQ        || CUR_TOKEN.info.opt == Operators::GREATER   ||
+        CUR_TOKEN.info.opt == Operators::GREATER_EQ || CUR_TOKEN.info.opt == Operators::NOT_EQ))
     {
         Node* op = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
         INCREASE_PTR;
@@ -1110,5 +1127,48 @@ static void TryInsertNameInStack(const Stack_t* stk, const char* str,
     {
         InsertNameInTable(stk->data[stk->size - 1], str, type);
     }
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static Node* GetPrint(ParserState* storage, error_t* error)
+{
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::PRINT);
+
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::NUM || CUR_TOKEN.type == TokenType::NAME);
+
+    Node* elem = nullptr;
+
+    if (CUR_TOKEN.type == TokenType::NUM)
+        elem = GetNum(storage, error);
+    else
+        elem = GetOldVar(storage, error);
+
+    NULL_IF_ERR;
+
+    Node* print = MakeNode(NodeType::OP, {.opt = Operators::PRINT});
+
+    ConnectNodes(print, elem, nullptr);
+
+    return print;
+}
+
+//-----------------------------------------------------------------------------------------------------
+
+static Node* GetRead(ParserState* storage, error_t* error)
+{
+    CONSUME(CUR_TOKEN.type == TokenType::TOKEN && CUR_TOKEN.info.opt == Operators::READ);
+
+    SYN_ASSERT(CUR_TOKEN.type == TokenType::NAME);
+
+    Node* elem = GetOldVar(storage, error);
+
+    NULL_IF_ERR;
+
+    Node* read = MakeNode(NodeType::OP, {.opt = Operators::READ});
+
+    ConnectNodes(read, elem, nullptr);
+
+    return read;
 }
 

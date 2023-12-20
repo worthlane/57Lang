@@ -246,7 +246,7 @@ bool IsType(const Operators type)
 {
     switch (type)
     {
-        case (Operators::INT):
+        case (Operators::TYPE_INT):
             return true;
         default:
             return false;

@@ -144,6 +144,14 @@ static Node* NodesPrefixRead(LinesStorage* storage, tree_t* tree, error_t* error
     }
     else
     {
+        Bufungetc(storage);
+
+        char read[MAX_STRING_LEN] = "";
+        BufScanfWord(storage, read);
+
+        DeleteClosingBracketFromWord(storage, read);
+
+        if (strncmp(read, "nil", MAX_STRING_LEN))
             error->code = (int) TreeErrors::INVALID_SYNTAX;
     }
 

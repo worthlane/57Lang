@@ -46,7 +46,7 @@ enum class TokenType
 union TokenValue
 {
     Operators       opt;
-    int             val;
+    double          val;
     int             name_id;
 };
 

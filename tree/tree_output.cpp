@@ -98,15 +98,14 @@ void PrintSyncNodeData(FILE* fp, const tree_t* tree, const Node* node)
     switch(node->type)
     {
         case (NodeType::NUM):
-            fprintf(fp, " %g ", node->value.val);
+            fprintf(fp, " %g", node->value.val);
             break;
         case (NodeType::VAR):
-            fprintf(fp, " _%s_ ", tree->names.list[node->value.var].name);
+            fprintf(fp, " _%s_", tree->names.list[node->value.var].name);
             break;
         case (NodeType::OP):
             fprintf(fp, " ");
             PrintOperator(fp, node->value.opt);
-            fprintf(fp, " ");
             break;
         default:
             fprintf(fp, " undefined ");
@@ -138,7 +137,7 @@ void PrintPrefixTree(FILE* fp, const tree_t* tree)
 
     fprintf(fp, "(");
     NodesPrefixPrint(fp, tree, tree->root);
-    fprintf(fp, ")\n");
+    fprintf(fp, " )\n");
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -149,13 +148,13 @@ static void NodesPrefixPrint(FILE* fp, const tree_t* tree, const Node* node)
 
     PrintSyncNodeData(fp, tree, node);
 
-    fprintf(fp, "(");
+    if (node->left != nullptr) fprintf(fp, " (");
     NodesPrefixPrint(fp, tree, node->left);
-    fprintf(fp, ")");
+    if (node->left != nullptr) fprintf(fp, " )");
 
-    fprintf(fp, "(");
+    if (node->right != nullptr) fprintf(fp, " (");
     NodesPrefixPrint(fp, tree, node->right);
-    fprintf(fp, ")");
+    if (node->right != nullptr) fprintf(fp, " )");
 }
 
 //-----------------------------------------------------------------------------------------------------

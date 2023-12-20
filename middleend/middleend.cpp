@@ -51,7 +51,7 @@ static void SimplifyTreeConstants(tree_t* expr, Node* node, int* transform_cnt, 
     {
         if (node->right->type == NodeType::NUM)
         {
-            UniteExpressionSubtree(expr, node, error);
+            UniteSubtree(expr, node, error);
             *transform_cnt++;
         }
 
@@ -62,7 +62,7 @@ static void SimplifyTreeConstants(tree_t* expr, Node* node, int* transform_cnt, 
     {
         if (node->left == NodeType::NUM)
         {
-            UniteExpressionSubtree(expr, node, error);
+            UniteSubtree(expr, node, error);
             *transform_cnt++;
         }
 
@@ -71,7 +71,7 @@ static void SimplifyTreeConstants(tree_t* expr, Node* node, int* transform_cnt, 
 
     if (node->left->type == NodeType::NUM && node->right->type == NodeType::NUM)
     {
-        UniteExpressionSubtree(expr, node, error);
+        UniteSubtree(expr, node, error);
         *transform_cnt++;
         return;
     }
@@ -79,7 +79,7 @@ static void SimplifyTreeConstants(tree_t* expr, Node* node, int* transform_cnt, 
 
 //------------------------------------------------------------------
 
-static void UniteExpressionSubtree(tree_t* tree, Node* node, error_t* error)
+static void UniteSubtree(tree_t* tree, Node* node, error_t* error)
 {
     assert(tree);
     assert(error);
