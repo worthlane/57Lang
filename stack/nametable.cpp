@@ -27,32 +27,20 @@ int InsertKeywordInTable(nametable_t* nametable, const char* name)
 
 //-----------------------------------------------------------------------------------------------------
 
+#define DEF_OP(name, is_char, symb)             \
+        if (!is_char)                           \
+        {                                       \
+            InsertKeywordInTable(nametable, symb);  \
+        }                                               \
+
 void FillNametableWithKeywords(nametable_t* nametable)
 {
     assert(nametable);
 
-    InsertKeywordInTable(nametable, IF);
-    InsertKeywordInTable(nametable, ELSE);
-    InsertKeywordInTable(nametable, CLOSE_BLOCK);
-    InsertKeywordInTable(nametable, WHILE);
-    InsertKeywordInTable(nametable, FUNC_WALL);
-    InsertKeywordInTable(nametable, SIN);
-    InsertKeywordInTable(nametable, INPUT);
-    InsertKeywordInTable(nametable, OUTPUT);
-    InsertKeywordInTable(nametable, INT);
-    InsertKeywordInTable(nametable, COS);
-    InsertKeywordInTable(nametable, ASSIGN);
-    InsertKeywordInTable(nametable, END);
-    InsertKeywordInTable(nametable, AND);
-    InsertKeywordInTable(nametable, OR);
-    InsertKeywordInTable(nametable, LESS);
-    InsertKeywordInTable(nametable, LESSEQUAL);
-    InsertKeywordInTable(nametable, GREATER);
-    InsertKeywordInTable(nametable, NOT_EQUAL);
-    InsertKeywordInTable(nametable, GREATEREQUAL);
-    InsertKeywordInTable(nametable, EQUAL);
-    InsertKeywordInTable(nametable, RETURN);
+    #include "common/operations.h"
 }
+
+#undef DEF_OP
 
 //-----------------------------------------------------------------------------------------------------
 
@@ -158,70 +146,46 @@ int InsertNameInTable(nametable_t* nametable, const char* name, const TokenType 
 
 //-----------------------------------------------------------------------------------------------------
 
-#ifdef CHECK_OP
-#undef CHECK_OP
-#endif
-#define CHECK_OP(opt)        \
-    case (Operators::opt):        \
-        fprintf(fp, #opt);   \
+#define DEF_OP(name, ...)        \
+    case (Operators::name):        \
+        fprintf(fp, #name);   \
         break;                    \
 
 void PrintOperator(FILE* fp, const Operators sign)
 {
     switch (sign)
     {
-        CHECK_OP(ADD);
-        CHECK_OP(SUB);
-        CHECK_OP(MUL);
-        CHECK_OP(DIV);
-        CHECK_OP(DEG);
-        CHECK_OP(COMMA);
-        CHECK_OP(L_BRACKET);
-        CHECK_OP(R_BRACKET);
+        #include "common/operations.h"
 
-        CHECK_OP(BREAK);
-        CHECK_OP(INPUT);
-        CHECK_OP(INT);
-        CHECK_OP(OUTPUT);
-        CHECK_OP(SIN);
-        CHECK_OP(COS);
-        CHECK_OP(ASSIGN);
-        CHECK_OP(IF);
-        CHECK_OP(WHILE);
-        CHECK_OP(FUNC_WALL);
-        CHECK_OP(END);
-        CHECK_OP(AND);
-        CHECK_OP(OR);
-        CHECK_OP(GREATER);
-        CHECK_OP(GREATEREQUAL);
-        CHECK_OP(LESSEQUAL);
-        CHECK_OP(LESS);
-        CHECK_OP(EQUAL);
-        CHECK_OP(NOT_EQUAL);
-        CHECK_OP(RETURN);
-        CHECK_OP(ELSE);
-        CHECK_OP(CLOSE_BLOCK);
-        CHECK_OP(TYPE);
-        CHECK_OP(FUNC);
-        CHECK_OP(NEW_FUNC);
-        CHECK_OP(FUNC_CALL);
+        case (Operators::TYPE):
+            fprintf(fp, "TYPE");
+            break;
+
+        case (Operators::FUNC):
+            fprintf(fp, "FUNC");
+            break;
+
+        case (Operators::NEW_FUNC):
+            fprintf(fp, "NEW_FUNC");
+            break;
+
+        case (Operators::FUNC_CALL):
+            fprintf(fp, "FUNC_CALL");
+            break;
 
         default:
             fprintf(fp, " undefined_operator ");
     }
 }
 
-#undef CHECK_SHORT_OP
+#undef DEF_OP
 
 //-----------------------------------------------------------------------------------------------------
 
-#ifdef COMPARE_KEYWORD
-#undef COMPARE_KEYWORD
-#endif
-#define COMPARE_KEYWORD(op)                     \
-    if (!strncmp(keyword, op, MAX_NAME_LEN))   \
+#define DEF_OP(name, is_char, symb)                     \
+    if (!strncmp(keyword, symb, MAX_NAME_LEN))   \
     {                                           \
-        return Operators::op;                       \
+        return Operators::name;                       \
     }                                           \
     else
 
@@ -230,33 +194,13 @@ Operators TranslateKeywordToOperator(const char* keyword)
 {
     if (!keyword) return Operators::UNK;
 
-    COMPARE_KEYWORD(SIN);
-    COMPARE_KEYWORD(COS);
-    COMPARE_KEYWORD(ASSIGN);
-    COMPARE_KEYWORD(IF);
-    COMPARE_KEYWORD(END);
-    COMPARE_KEYWORD(INPUT);
-    COMPARE_KEYWORD(OUTPUT);
-    COMPARE_KEYWORD(INT);
-    COMPARE_KEYWORD(ELSE);
-    COMPARE_KEYWORD(CLOSE_BLOCK);
-    COMPARE_KEYWORD(WHILE);
-    COMPARE_KEYWORD(GREATER);
-    COMPARE_KEYWORD(GREATEREQUAL);
-    COMPARE_KEYWORD(LESS);
-    COMPARE_KEYWORD(LESSEQUAL);
-    COMPARE_KEYWORD(EQUAL);
-    COMPARE_KEYWORD(NOT_EQUAL);
-    COMPARE_KEYWORD(RETURN);
-    COMPARE_KEYWORD(AND);
-    COMPARE_KEYWORD(OR);
-    COMPARE_KEYWORD(FUNC_WALL);
+    #include "common/operations.h"
 
     /* else */ return Operators::UNK;
 
 }
 
-#undef COMPARE_KEYWORD
+#undef DEF_OP
 
 //-----------------------------------------------------------------------------------------------------
 
@@ -285,7 +229,6 @@ Operators GetOperator(const char* word)
     COMPARE_WORD(SIN);
     COMPARE_WORD(COS);
     COMPARE_WORD(IF);
-    COMPARE_WORD(ELSE);
     COMPARE_WORD(WHILE);
 
     COMPARE_WORD(GREATER);

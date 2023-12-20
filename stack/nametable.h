@@ -104,14 +104,12 @@ void FillNametableWithKeywords(nametable_t* nametable);
 void GlobalNametableCtor(nametable_t* nametable);
 
 static const char* IF           = "57?";
-static const char* ELSE         = "!57?";
 
 static const char* INPUT        = "57>>";
 static const char* OUTPUT       = "57<<";
 
 static const char* INT          = "57::";
 
-// static const char* MAIN         = "_0_";
 static const char* WHILE        = "1000_7";
 static const char* RETURN       = "~57";
 static const char* SIN          = "$1#";
