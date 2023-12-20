@@ -62,7 +62,7 @@ static void GetNodeInfo(tree_t* tree, char* read, NodeType* type, NodeValue* val
     }
 
     char* end = nullptr;
-    int   num = strtol(read, &end, 10);
+    double num = strtod(read, &end);
     if (!(num == 0 && end != read + len))
     {
         *type = NodeType::NUM;

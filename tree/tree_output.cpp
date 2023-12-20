@@ -73,7 +73,7 @@ void PrintNodeData(FILE* fp, const tree_t* tree, const Node* node)
     switch(node->type)
     {
         case (NodeType::NUM):
-            fprintf(fp, " %d ", node->value.val);
+            fprintf(fp, " %g ", node->value.val);
             break;
         case (NodeType::VAR):
             fprintf(fp, " %s ", tree->names.list[node->value.var].name);
@@ -98,7 +98,7 @@ void PrintSyncNodeData(FILE* fp, const tree_t* tree, const Node* node)
     switch(node->type)
     {
         case (NodeType::NUM):
-            fprintf(fp, " %d ", node->value.val);
+            fprintf(fp, " %g ", node->value.val);
             break;
         case (NodeType::VAR):
             fprintf(fp, " _%s_ ", tree->names.list[node->value.var].name);

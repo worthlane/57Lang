@@ -72,7 +72,7 @@ enum class NodeType
 
 union NodeValue
 {
-    int         val;
+    double      val;
     Operators   opt;
     int         var;
 };

@@ -14,7 +14,7 @@ void OptimizeTree(tree_t* tree, error_t* error)
     while (cnt != 0)
     {
         cnt = 0;
-        // SimplifyExpressionConstants(expr, expr->root, &cnt, error);
+        SimplifyTreeConstants(tree, tree->root, &cnt, error);
         if (error->code != (int) MiddleendErrors::NONE)
             return;
 
@@ -24,10 +24,11 @@ void OptimizeTree(tree_t* tree, error_t* error)
         if (error->code != (int) MiddleendErrors::NONE)
             return;
     }
+}
 
-    //------------------------------------------------------------------
+//------------------------------------------------------------------
 
-static void SimplifyExpressionConstants(expr_t* expr, Node* node, int* transform_cnt, error_t* error)
+static void SimplifyTreeConstants(tree_t* expr, Node* node, int* transform_cnt, error_t* error)
 {
     assert(expr);
     assert(error);
@@ -38,17 +39,17 @@ static void SimplifyExpressionConstants(expr_t* expr, Node* node, int* transform
     if (node->left == nullptr && node->right == nullptr)
         return;
 
-    SimplifyExpressionConstants(expr, node->left, transform_cnt, error);
-    if (error->code != (int) ExpressionErrors::NONE)
+    SimplifyTreeConstants(expr, node->left, transform_cnt, error);
+    if (error->code != (int) MiddleendErrors::NONE)
         return;
 
-    SimplifyExpressionConstants(expr, node->right, transform_cnt, error);
-    if (error->code != (int) ExpressionErrors::NONE)
+    SimplifyTreeConstants(expr, node->right, transform_cnt, error);
+    if (error->code != (int) MiddleendErrors::NONE)
         return;
 
     if (node->left == nullptr)
     {
-        if (TYPE(node->right) == NodeType::NUMBER)
+        if (node->right->type == NodeType::NUM)
         {
             UniteExpressionSubtree(expr, node, error);
             *transform_cnt++;
@@ -59,7 +60,7 @@ static void SimplifyExpressionConstants(expr_t* expr, Node* node, int* transform
 
     if (node->right == nullptr)
     {
-        if (TYPE(node->left) == NodeType::NUMBER)
+        if (node->left == NodeType::NUM)
         {
             UniteExpressionSubtree(expr, node, error);
             *transform_cnt++;
@@ -68,7 +69,7 @@ static void SimplifyExpressionConstants(expr_t* expr, Node* node, int* transform
         return;
     }
 
-    if (TYPE(node->left) == NodeType::NUMBER && TYPE(node->right) == NodeType::NUMBER)
+    if (node->left->type == NodeType::NUM && node->right->type == NodeType::NUM)
     {
         UniteExpressionSubtree(expr, node, error);
         *transform_cnt++;
@@ -78,19 +79,77 @@ static void SimplifyExpressionConstants(expr_t* expr, Node* node, int* transform
 
 //------------------------------------------------------------------
 
-static void UniteExpressionSubtree(expr_t* expr, Node* node, error_t* error)
+static void UniteExpressionSubtree(tree_t* tree, Node* node, error_t* error)
 {
-    assert(expr);
+    assert(tree);
     assert(error);
 
-    double num = CalculateExpressionSubtree(expr, node, error);
-    if (error->code != (int) ExpressionErrors::NONE)
+    double num = CalculateExpressionSubtree(tree, node, error);
+    if (error->code != (int) MiddleendErrors::NONE)
         return;
 
     DestructNodes(node->left);
     DestructNodes(node->right);
 
-    FillNode(node, nullptr, nullptr, node->parent, NodeType::NUMBER, {.val = num});
+    FillNode(node, nullptr, nullptr, node->parent, NodeType::NUM, {.val = num});
+}
+
+//------------------------------------------------------------------
+
+#define DEF_OP(name, symb, priority, arg_amt, action, ...)      \
+            case (Operators::name):                             \
+                return action;                                  \
+
+static double OperatorAction(const double NUMBER_1, const double NUMBER_2,
+                                      const Operators operation, error_t* error)
+{
+    switch (operation)
+    {
+        #include "common/operations.h"
+        default:
+            error->code = (int) ExpressionErrors::UNKNOWN_OPERATION;
+            return POISON;
+    }
+}
+
+#undef DEF_OP
+
+//------------------------------------------------------------------
+
+static double CalculateExpressionSubtree(const expr_t* expr, Node* node, error_t* error)
+{
+    assert(expr);
+    assert(error);
+
+    if (!node) return 0;
+
+    if (node->left == nullptr && node->right == nullptr)
+    {
+        if (TYPE(node) == NodeType::NUMBER)             return VAL(node);
+        else if (TYPE(node) == NodeType::VARIABLE)      return expr->vars[VAR(node)].value;
+        else
+        {
+            error->code = (int) ExpressionErrors::INVALID_EXPRESSION_FORMAT;
+            return 0;
+        }
+    }
+
+    double left_result  = CalculateExpressionSubtree(expr, node->left, error);
+    double right_result = CalculateExpressionSubtree(expr, node->right, error);
+
+    if (TYPE(node) != NodeType::OPERATOR)
+    {
+        error->code = (int) ExpressionErrors::INVALID_EXPRESSION_FORMAT;
+        return 0;
+    }
+
+    double result = OperatorAction(left_result, right_result, OPT(node), error);
+
+    if (error->code == (int) ExpressionErrors::NONE)
+        return result;
+    else
+        return POISON;
+
 }
 
 //------------------------------------------------------------------

@@ -10,45 +10,11 @@ static const size_t MAX_NAME_LEN       = 64;
 // OPERATORS
 // ======================================================================
 
+#define DEF_OP(name, ...)  name,
+
 enum class Operators
 {
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    DEG,
-
-    ASSIGN,
-    SIN,
-    COS,
-    IF,
-    ELSE,
-    WHILE,
-
-    GREATER,
-    GREATEREQUAL,
-    LESS,
-    LESSEQUAL,
-    EQUAL,
-    NOT_EQUAL,
-    AND,
-    OR,
-
-    INPUT,
-    OUTPUT,
-
-    INT,
-
-    L_BRACKET,
-    R_BRACKET,
-    COMMA,
-    BREAK,
-    CLOSE_BLOCK,
-    FUNC_WALL,
-
-    RETURN,
-
-    END,
+    #include "common/operations.h"
 
     // FICTIVE OPERATORS:
 
@@ -60,6 +26,8 @@ enum class Operators
 
     UNK
 };
+
+#undef DEF_OP
 
 static const char ADD       = '+';
 static const char SUB       = '-';
