@@ -27,7 +27,7 @@ int InsertKeywordInTable(nametable_t* nametable, const char* name)
 
 //-----------------------------------------------------------------------------------------------------
 
-#define DEF_OP(name, is_char, symb)             \
+#define DEF_OP(name, is_char, symb, ...)             \
         if (!is_char)                           \
         {                                       \
             InsertKeywordInTable(nametable, symb);  \
@@ -182,7 +182,7 @@ void PrintOperator(FILE* fp, const Operators sign)
 
 //-----------------------------------------------------------------------------------------------------
 
-#define DEF_OP(name, is_char, symb)                     \
+#define DEF_OP(name, is_char, symb, ...)                     \
     if (!strncmp(keyword, symb, MAX_NAME_LEN))   \
     {                                           \
         return Operators::name;                       \
@@ -197,17 +197,13 @@ Operators TranslateKeywordToOperator(const char* keyword)
     #include "common/operations.h"
 
     /* else */ return Operators::UNK;
-
 }
 
 #undef DEF_OP
 
 //-----------------------------------------------------------------------------------------------------
 
-#ifdef COMPARE_WORD
-#undef COMPARE_WORD
-#endif
-#define COMPARE_WORD(op)                     \
+#define DEF_OP(op, ...)                     \
     if (!strncmp(word, #op, MAX_NAME_LEN))   \
     {                                           \
         return Operators::op;                       \
@@ -219,54 +215,30 @@ Operators GetOperator(const char* word)
 {
     if (!word) return Operators::UNK;
 
-    COMPARE_WORD(ADD);
-    COMPARE_WORD(SUB);
-    COMPARE_WORD(MUL);
-    COMPARE_WORD(DIV);
-    COMPARE_WORD(DEG);
+    #include "common/operations.h"
 
-    COMPARE_WORD(ASSIGN);
-    COMPARE_WORD(SIN);
-    COMPARE_WORD(COS);
-    COMPARE_WORD(IF);
-    COMPARE_WORD(WHILE);
-
-    COMPARE_WORD(GREATER);
-    COMPARE_WORD(GREATEREQUAL);
-    COMPARE_WORD(LESS);
-    COMPARE_WORD(LESSEQUAL);
-    COMPARE_WORD(EQUAL);
-    COMPARE_WORD(NOT_EQUAL);
-    COMPARE_WORD(AND);
-    COMPARE_WORD(OR);
-
-    COMPARE_WORD(INPUT);
-    COMPARE_WORD(OUTPUT);
-
-    COMPARE_WORD(INT);
-
-    COMPARE_WORD(L_BRACKET);
-    COMPARE_WORD(R_BRACKET);
-    COMPARE_WORD(COMMA);
-    COMPARE_WORD(BREAK);
-    COMPARE_WORD(CLOSE_BLOCK);
-    COMPARE_WORD(FUNC_WALL);
-
-    COMPARE_WORD(RETURN);
-
-    COMPARE_WORD(END);
-
-    COMPARE_WORD(FUNC_CALL);
-
-    COMPARE_WORD(TYPE);
-    COMPARE_WORD(NEW_FUNC);
-    COMPARE_WORD(FUNC);
-
-    /* else */ return Operators::UNK;
+    if (!strncmp(word, "FUNC_CALL", MAX_NAME_LEN))
+    {
+        return Operators::FUNC_CALL;
+    }
+    else if (!strncmp(word, "TYPE", MAX_NAME_LEN))
+    {
+        return Operators::TYPE;
+    }
+    else if (!strncmp(word, "NEW_FUNC", MAX_NAME_LEN))
+    {
+        return Operators::NEW_FUNC;
+    }
+    else if (!strncmp(word, "FUNC", MAX_NAME_LEN))
+    {
+        return Operators::FUNC;
+    }
+    else
+        return Operators::UNK;
 
 }
 
-#undef COMPARE_KEYWORD
+#undef DEF_OP
 
 //-----------------------------------------------------------------------------------------------------
 

@@ -155,13 +155,12 @@ static FrontendErrors TokenizeNumber(LinesStorage* text, Tokens* storage, error_
 
 //-----------------------------------------------------------------------------------------------------
 
-#ifdef IS_OP
-#undef IS_OP
-#endif
-#define IS_OP(opt)                                       \
-        case opt:                                         \
-            op = Operators::opt;                          \
-            break;
+#define DEF_OP(name, is_char, symb, ...)    \
+        if (ch == symb[0] && is_char)                  \
+        {                                   \
+            op = Operators::name;            \
+        }                                    \
+        else                                \
 
 static FrontendErrors TokenizeOperator(LinesStorage* text, Tokens* storage, error_t* error)
 {
@@ -174,20 +173,9 @@ static FrontendErrors TokenizeOperator(LinesStorage* text, Tokens* storage, erro
 
     Operators op = Operators::UNK;
 
-    switch(ch)
-    {
-        IS_OP(ADD);
-        IS_OP(SUB);
-        IS_OP(MUL);
-        IS_OP(DIV);
-        IS_OP(DEG);
-        IS_OP(COMMA);
-        IS_OP(L_BRACKET);
-        IS_OP(R_BRACKET);
-        IS_OP(BREAK);
-        default:
-            SET_FRONTEND_ERROR(UNKNOWN_OPERATOR, "%c IN LINE %d", ch, text->curr_line);
-    }
+    #include "common/operations.h"
+
+    /* else */ SET_FRONTEND_ERROR(UNKNOWN_OPERATOR, "%c IN LINE %d", ch, text->curr_line);
 
     token_t* token = &storage->array[storage->size];
 
@@ -200,7 +188,7 @@ static FrontendErrors TokenizeOperator(LinesStorage* text, Tokens* storage, erro
     return (FrontendErrors) error->code;
 }
 
-#undef IS_OP
+#undef DEF_OP
 
 //-----------------------------------------------------------------------------------------------------
 

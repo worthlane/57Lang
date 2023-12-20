@@ -29,16 +29,6 @@ enum class Operators
 
 #undef DEF_OP
 
-static const char ADD       = '+';
-static const char SUB       = '-';
-static const char MUL       = '*';
-static const char DIV       = '/';
-static const char DEG       = '^';
-static const char L_BRACKET = '(';
-static const char R_BRACKET = ')';
-static const char COMMA     = ',';
-static const char BREAK     = '\n';
-
 // ======================================================================
 // TOKENS
 // ======================================================================
@@ -102,31 +92,6 @@ bool FindNameInTable(const nametable_t* nametable, const char* name, bool* exist
 int  InsertKeywordInTable(nametable_t* nametable, const char* name);
 void FillNametableWithKeywords(nametable_t* nametable);
 void GlobalNametableCtor(nametable_t* nametable);
-
-static const char* IF           = "57?";
-
-static const char* INPUT        = "57>>";
-static const char* OUTPUT       = "57<<";
-
-static const char* INT          = "57::";
-
-static const char* WHILE        = "1000_7";
-static const char* RETURN       = "~57";
-static const char* SIN          = "$1#";
-static const char* COS          = "<0$";
-static const char* ASSIGN       = ":=";
-static const char* GREATER      = ">";
-static const char* GREATEREQUAL = ">=";
-static const char* LESS         = "<";
-static const char* LESSEQUAL    = "<=";
-static const char* EQUAL        = "==";
-static const char* NOT_EQUAL    = "!=";
-static const char* AND          = "&&";
-static const char* OR           = "||";
-static const char* CLOSE_BLOCK  = ".57";
-static const char* END          = "@57@";
-
-static const char* FUNC_WALL    = "##################################################";
 
 Operators TranslateKeywordToOperator(const char* keyword);
 Operators GetOperator(const char* word);
