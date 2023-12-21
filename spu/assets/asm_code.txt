@@ -41,10 +41,18 @@ push 1
 push 0      % IF START
 je :FALSE_COND_2
 push [0]
+pop [2]
+push [2]
 push [0]
 push 1
 sub
 call :1337    % CALLING FUNC
+pop rax
+pop [2]
+push rax
+pop [3]
+push [2]
+push [3]
 mul
 pop [1]
 push [1]
@@ -54,13 +62,17 @@ ret    % FUNC END
 
 :_0_    % FUNC START
 push 0
-pop [2]
+pop [4]
 in
-pop [2]
-push [2]
+pop [4]
+push [4]
+push [4]
 call :1337    % CALLING FUNC
-pop [3]
-push [3]
+pop rax
+pop [4]
+push rax
+pop [5]
+push [5]
 out
 ret    % FUNC END
 hlt

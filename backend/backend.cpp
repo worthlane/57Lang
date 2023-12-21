@@ -122,13 +122,26 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
         }
         case (Operators::FUNC_CALL):
         {
-            // fprintf(out_stream, "push [0]");
+            int name_amt = ((nametable_t*) LOCAL_TABLE(tables))->size;
+
+            for (int i = 0; i < name_amt; i++)
+            {
+                int id = LOCAL_TABLE(tables)->list[i].ram_id;
+                fprintf(out_stream, "push [%d]\n", id);
+            }
+
             TranslateNodeToAsm(tree, node->left->left, tables, out_stream, error);
             fprintf(out_stream, "call :%s    %% CALLING FUNC\n", tree->names.list[node->left->value.var].name);
 
-            /*fprintf(out_stream, "pop rax");
-            fprintf(out_stream, "pop [0]");
-            fprintf(out_stream, "push rax");*/
+            fprintf(out_stream, "pop rax\n");
+
+            for (int i = 0; i < name_amt; i++)
+            {
+                int id = LOCAL_TABLE(tables)->list[i].ram_id;
+                fprintf(out_stream, "pop [%d]\n", id);
+            }
+
+            fprintf(out_stream, "push rax\n");
             break;
         }
     }
@@ -166,6 +179,7 @@ static void GetParams(const tree_t* tree, const Node* node, Stack_t* tables, int
         int ram_id = (*ram_spot)++;
 
         LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
+        LOCAL_TABLE(tables)->list[id].is_arg = true;
 
         fprintf(fp, "pop [%d]\n", ram_id);
         return;

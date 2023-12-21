@@ -64,6 +64,8 @@ struct name_t
     TokenType type;
 
     int       ram_id;
+
+    bool      is_arg;
 };
 
 struct nametable_t
