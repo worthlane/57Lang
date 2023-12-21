@@ -349,8 +349,6 @@ static void TranslateAssignToAsm(const tree_t* tree, const Node* node, Stack_t* 
 
         *ram_spot += 1;
 
-        printf("[%d]\n", *ram_spot);
-
         LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
     }
 

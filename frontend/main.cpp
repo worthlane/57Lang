@@ -34,8 +34,6 @@ int main(const int argc, const char* argv[])
     Tokenize(&info, &storage, &error);
     EXIT_IF_FRONTEND_ERROR;
 
-    DumpTokensStorage(stdout, &storage);
-
     TreeCtor(&tree, &error);
 
     GetTreeFromTokens(&storage, &tree, &error);
