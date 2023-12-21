@@ -8,7 +8,7 @@
 #include "common/input_and_output.h"
 #include "backend.h"
 
-const char* BYTES_FILE = "assets/tmp_code.txt";
+const char* BYTES_FILE = "spu/assets/byte_code.txt";
 
 int main(const int argc, const char* argv[])
 {
@@ -33,4 +33,8 @@ int main(const int argc, const char* argv[])
     FILE* out = fopen(BYTES_FILE, "w");
 
     TranslateToAsm(&tree, out, &error);
+
+    system("./spu/asm/asm assets/asm_code.txt assets/byte_code.txt assets/byte_code.bin"); // TODO это пиздец, надо потом исправить
+
+    system("./spu/spu/spu spu/assets/byte_code.bin"); // TODO это пиздец, надо потом исправить
 }

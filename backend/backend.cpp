@@ -325,8 +325,6 @@ static void GetParams(const tree_t* tree, const Node* node, Stack_t* tables, int
 
         LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
 
-        printf("[%d]\n", *ram_spot);
-
         fprintf(fp, "pop [%d]\n", ram_id);
         return;
     }

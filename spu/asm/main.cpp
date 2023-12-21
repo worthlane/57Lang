@@ -13,8 +13,8 @@ int main(const int argc, const char* argv[])
     ErrorInfo error = {};
 
     const char* input_file      = GetFileName(argc, argv, 1, "INPUT", &error);
-    const char* output_bin_file = GetFileName(argc, argv, 2, "BINARY OUTPUT", &error);
-    const char* output_file     = GetFileName(argc, argv, 3, "WORD OUTPUT", &error);
+    const char* output_file     = GetFileName(argc, argv, 2, "WORD OUTPUT", &error);
+    const char* output_bin_file = GetFileName(argc, argv, 3, "BINARY OUTPUT", &error);
 
     FILE* in_stream      = OpenFile(input_file, "rb", &error);
     EXIT_IF_ERROR(&error);
@@ -28,7 +28,12 @@ int main(const int argc, const char* argv[])
     LinesStorage info = {};
     CreateTextStorage(&info, &error, input_file);
 
-    AsmErrors asm_err = Assembly(out_stream, out_bin_stream, &info);
+    AsmErrors asm_err = Assembly(out_stream, out_bin_stream, &info); // TODO буффер
+    if (asm_err != AsmErrors::NONE)
+    {
+        error.code = (int) ERRORS::ASM_ERROR;
+        EXIT_IF_ERROR(&error);
+    }
 
     fclose(in_stream);
     fclose(out_stream);
