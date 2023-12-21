@@ -57,6 +57,10 @@ void TranslateToAsm(const tree_t* tree, FILE* out_stream, error_t* error)
 
 //-----------------------------------------------------------------------------------------------------
 
+#define DEF_OP(name, is_char, symb, action, is_calc, asm)   \
+                case Operators::name:                       \
+                    asm
+
 static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* tables, FILE* out_stream, error_t* error)
 {
     assert(tree);
@@ -87,130 +91,12 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
 
     switch (node->value.opt)
     {
-        case (Operators::ADD):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
-            fprintf(out_stream, "add\n");
-            break;
-        }
-        case (Operators::SUB):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
-            fprintf(out_stream, "sub\n");
-            break;
-        }
-        case (Operators::MUL):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
-            fprintf(out_stream, "mul\n");
-            break;
-        }
-        case (Operators::DIV):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
-            fprintf(out_stream, "div\n");
-            break;
-        }
-        case (Operators::DEG):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
-            fprintf(out_stream, "pow\n");
-            break;
-        }
-        case (Operators::SIN):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            fprintf(out_stream, "sin\n");
-            break;
-        }
-        case (Operators::COS):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            fprintf(out_stream, "cos\n");
-            break;
-        }
-        case (Operators::SQRT):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            fprintf(out_stream, "sqrt\n");
-            break;
-        }
-        case (Operators::READ):
-        {
-            fprintf(out_stream, "in\n");
+        #include "common/operations.h"
 
-            int ram_id = GetNameRamIdFromStack(tables, NODE_NAME(node->left));
-
-            fprintf(out_stream, "pop [%d]\n", ram_id);
-            break;
-        }
-        case (Operators::PRINT):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            fprintf(out_stream, "out\n");
-            break;
-        }
-        case (Operators::COMMA):
-        {
-            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            break;
-        }
-        case (Operators::LINE_END):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
-            break;
-        }
         case (Operators::NEW_FUNC):
         {
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
-            break;
-        }
-        case (Operators::GREATER):
-        {
-            TranslateCompareToAsm(tree, node, tables, &label_spot, "jb", out_stream, error);
-            break;
-        }
-        case (Operators::GREATER_EQ):
-        {
-            TranslateCompareToAsm(tree, node, tables, &label_spot, "jbe", out_stream, error);
-            break;
-        }
-        case (Operators::LESS):
-        {
-            TranslateCompareToAsm(tree, node, tables, &label_spot, "ja", out_stream, error);
-            break;
-        }
-        case (Operators::LESS_EQ):
-        {
-            TranslateCompareToAsm(tree, node, tables, &label_spot, "jae", out_stream, error);
-            break;
-        }
-        case (Operators::EQ):
-        {
-            TranslateCompareToAsm(tree, node, tables, &label_spot, "je", out_stream, error);
-            break;
-        }
-        case (Operators::NOT_EQ):
-        {
-            TranslateCompareToAsm(tree, node, tables, &label_spot, "jne", out_stream, error);
-            break;
-        }
-        case (Operators::AND):
-        {
-            TranslateAndToAsm(tree, node, tables, &label_spot, out_stream, error);
-            break;
-        }
-        case (Operators::OR):
-        {
-            TranslateOrToAsm(tree, node, tables, &label_spot, out_stream, error);
             break;
         }
         case (Operators::TYPE):
@@ -218,62 +104,6 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
             TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             break;
         }
-        case (Operators::RETURN):
-        {
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-            fprintf(out_stream, "ret\n");
-            break;
-        }
-        case (Operators::ASSIGN):
-        {
-            TranslateAssignToAsm(tree, node, tables, &ram_spot, out_stream, error);
-            break;
-        }
-        case (Operators::IF):
-        {
-            int free_label = label_spot++;
-
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-
-            fprintf(out_stream, "push 0      %% IF START\n"
-                                "je :FALSE_COND_%d\n", (int) free_label);
-
-            nametable_t* local = MakeNametable();
-            StackPush(tables, local);
-
-            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
-
-            StackPop(tables);
-
-            fprintf(out_stream, ":FALSE_COND_%d      %% IF END\n", (int) free_label);
-
-            break;
-        }
-        case (Operators::WHILE):
-        {
-            int free_label_cycle = label_spot++;
-            int free_label_cond  = label_spot++;
-
-            fprintf(out_stream, ":WHILE_CYCLE_%d   %% WHILE START\n", free_label_cycle);
-
-            TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
-
-            fprintf(out_stream, "push 0\n"
-                                "je :QUIT_CYCLE_%d\n", free_label_cond);
-
-            nametable_t* local = MakeNametable();
-            StackPush(tables, local);
-
-            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
-
-            StackPop(tables);
-
-            fprintf(out_stream, "jmp :WHILE_CYCLE_%d\n"
-                                ":QUIT_CYCLE_%d       %% WHILE END\n", free_label_cycle, free_label_cond);
-
-            break;
-        }
-
         case (Operators::FUNC):
         {
             fprintf(out_stream, "\n:%s    %% FUNC START\n", tree->names.list[node->left->value.var].name);
@@ -302,8 +132,9 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
             break;
         }
     }
-
 }
+
+#undef DEF_OP
 
 //-----------------------------------------------------------------------------------------------------
 
