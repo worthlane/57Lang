@@ -22,7 +22,6 @@ clean:
 	make -f $(FRONT) clean && make -f $(BACK) clean && make -f $(MID) clean && cd spu && make clean && cd ..
 
 run:
-	./spu/asm/asm assets/asm_code.txt assets/byte_code.txt assets/byte_code.bin
+	./spu/asm/asm spu/assets/asm_code.txt spu/assets/byte_code.txt spu/assets/byte_code.bin
+	./spu/spu/spu spu/assets/byte_code.bin
 
-start:
-	./spu/spu/spu assets/byte_code.bin

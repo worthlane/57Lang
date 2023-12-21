@@ -26,10 +26,14 @@ int main(const int argc, const char* argv[])
 
     TreePrefixRead(&info, &tree, &error);
     EXIT_IF_TREE_ERROR(&error);
-
     DUMP_TREE(&tree);
 
     OptimizeTree(&tree, &error);
-
     DUMP_TREE(&tree);
+
+    FILE* out_stream = fopen(TREE_FILE, "w");
+
+    PrintPrefixTree(out_stream, &tree);
+
+    fclose(out_stream);
 }

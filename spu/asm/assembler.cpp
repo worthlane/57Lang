@@ -287,9 +287,11 @@ static AsmErrors GetRegOrIntArgument(int* cmd, code_t* byte_buf, size_t* positio
 
     if (len == 0)
     {
+        int zero = 0;
         *cmd_len += read_symbols;
         AddValueInByteCode(byte_buf, position, cmd);
-        
+        AddValueInByteCode(byte_buf, position, &zero);
+
         return AsmErrors::NONE;
     }
 

@@ -20,6 +20,7 @@ DEF_OP(DEG, true, "^", ( pow(NUMBER_1, NUMBER_2) ), true)
 
 DEF_OP(ASSIGN, false, ":=", (0), false)
 DEF_OP(SIN, false, "$1#", ( sin( NUMBER_1 )), true)
+DEF_OP(SQRT, false, "57#", ( sqrt( NUMBER_1 )), true)
 DEF_OP(COS, false, "<0$", ( cos( NUMBER_1 )), true)
 DEF_OP(IF, false, "57?", (0), false)
 DEF_OP(WHILE, false, "1000_7", (0), false)

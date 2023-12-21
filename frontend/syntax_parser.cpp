@@ -64,8 +64,9 @@
                 LOG_START(__func__, __FILE__, __LINE__);                                                \
                 error->code = (int) FrontendErrors::INVALID_SYNTAX;                                     \
                 SetErrorData(error, "SYNTAX ASSERT\"" #stat "\"<br>\n"                                  \
-                                    "IN FUNCTION %s FROM FILE \"%s\"(%d)<br>\n",                        \
-                                    __func__, __FILE__, __LINE__);                                      \
+                                    "IN FUNCTION %s FROM FILE \"%s\"(%d)<br>\n"                         \
+                                    "IN LINE %d<br>\n",                                                 \
+                                    __func__, __FILE__, __LINE__, CUR_TOKEN.line);                         \
                 LOG_END();                                                                              \
                 return nullptr;                                                                         \
             }                                                                                           \
@@ -995,7 +996,8 @@ static Node* GetTrigonometry(ParserState* storage, error_t* error)
 
     if (CUR_TOKEN.type     == TokenType::TOKEN &&
        (CUR_TOKEN.info.opt == Operators::SIN    ||
-        CUR_TOKEN.info.opt == Operators::COS))
+        CUR_TOKEN.info.opt == Operators::COS    ||
+        CUR_TOKEN.info.opt == Operators::SQRT))
     {
         Node* op = MakeNode(NodeType::OP, {.opt = CUR_TOKEN.info.opt});
         INCREASE_PTR;

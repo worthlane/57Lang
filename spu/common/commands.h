@@ -10,9 +10,10 @@ DEF_CMD(HLT, 0, ArgumentType::NONE, 4,
 
 DEF_CMD(OUT, 1, ArgumentType::NO_LABELS, 4,
 {
+    char ch = spu->byte_buf[spu->position++];
+    
     if ((arg_params & NUM_ARG) != 0)
     {
-        char ch = spu->byte_buf[spu->position++];
         printf("%c", (char) ch);
     }
     else

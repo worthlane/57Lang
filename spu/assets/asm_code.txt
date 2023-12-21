@@ -64,7 +64,3 @@ push [3]
 out
 ret    % FUNC END
 hlt
-
-
-
-
