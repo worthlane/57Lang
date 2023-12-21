@@ -13,11 +13,12 @@ CXXFLAGS =  -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextra -Weffc++ -Waggressive-
 			-Wno-old-style-cast -Wno-varargs -Wstack-protector -fcheck-new -fsized-deallocation    \
 			-fstack-protector -fstrict-overflow -fno-omit-frame-pointer -Wlarger-than=8192         \
 			-Wstack-usage=8192 -fPIE -Werror=vla
-BUILD_DIR = ../build/bin
-OBJECTS_DIR = ../build/asm
-COMMON_DIR = ../common
+
+BUILD_DIR = build/bin
+OBJECTS_DIR = build/asm
+COMMON_DIR = common
 SOURCES = main.cpp assembler.cpp
-OUT_SOURCES = ../common/logs.cpp ../common/errors.cpp ../common/input_and_output.cpp ../common/asm_common.cpp ../common/file_read.cpp
+OUT_SOURCES = common/logs.cpp common/errors.cpp common/input_and_output.cpp common/asm_common.cpp common/file_read.cpp
 OBJECTS = $(SOURCES:%.cpp=$(OBJECTS_DIR)/%.o)
 OUT_OBJECTS = $(OUT_SOURCES:$(COMMON_DIR)/%.cpp=$(OBJECTS_DIR)/%.o)
 

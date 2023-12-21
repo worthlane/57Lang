@@ -32,7 +32,7 @@ static void TranslateOrToAsm(const tree_t* tree, const Node* node, Stack_t* tabl
 static void TranslateAssignToAsm(const tree_t* tree, const Node* node, Stack_t* tables,
                                  int* ram_spot, FILE* out_stream, error_t* error);
 
-static void GetParams(const tree_t* tree, const Node* node, Stack_t* tables, int* ram_spot);
+static void GetParams(const tree_t* tree, const Node* node, Stack_t* tables, int* ram_spot, FILE* fp);
 
 //-----------------------------------------------------------------------------------------------------
 
@@ -69,19 +69,15 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
 
     if (node->type == NodeType::NUM)
     {
-        printf("num\n");
         fprintf(out_stream, "push %d\n", (int) node->value.val);
         return;
     }
 
     if (node->type == NodeType::VAR)
     {
-        printf("var\n");
         int ram_id = GetNameRamIdFromStack(tables, NODE_NAME(node));
         if (ram_id == NO_RAM)
             error->code = (int) BackendErrors::NON_INIT_VAR;
-
-        printf("{{%d}}\n", ram_id);
 
         fprintf(out_stream, "push [%d]\n", ram_id);
         return;
@@ -93,7 +89,6 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
     {
         case (Operators::ADD):
         {
-            printf("add\n");
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             fprintf(out_stream, "add\n");
@@ -101,7 +96,6 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
         }
         case (Operators::SUB):
         {
-            printf("sub\n");
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             fprintf(out_stream, "sub\n");
@@ -109,7 +103,6 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
         }
         case (Operators::MUL):
         {
-            printf("mul\n");
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             fprintf(out_stream, "mul\n");
@@ -117,7 +110,6 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
         }
         case (Operators::DIV):
         {
-            printf("div\n");
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             fprintf(out_stream, "div\n");
@@ -125,7 +117,6 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
         }
         case (Operators::DEG):
         {
-            printf("deg\n");
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             fprintf(out_stream, "pow\n");
@@ -133,21 +124,18 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
         }
         case (Operators::SIN):
         {
-            printf("sin\n");
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             fprintf(out_stream, "sin\n");
             break;
         }
         case (Operators::COS):
         {
-            printf("cos\n");
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             fprintf(out_stream, "cos\n");
             break;
         }
         case (Operators::READ):
         {
-            printf("read\n");
             fprintf(out_stream, "in\n");
 
             int ram_id = GetNameRamIdFromStack(tables, NODE_NAME(node->left));
@@ -157,102 +145,86 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
         }
         case (Operators::PRINT):
         {
-            printf("print\n");
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             fprintf(out_stream, "out\n");
             break;
         }
         case (Operators::COMMA):
         {
-            printf("comma\n");
             TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             break;
         }
         case (Operators::LINE_END):
         {
-            printf("lineend\n");
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             break;
         }
         case (Operators::NEW_FUNC):
         {
-            printf("newfunc\n");
-            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
+            TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             break;
         }
         case (Operators::GREATER):
         {
-            printf("greater\n");
             TranslateCompareToAsm(tree, node, tables, &label_spot, "jb", out_stream, error);
             break;
         }
         case (Operators::GREATER_EQ):
         {
-            printf("greatereq\n");
             TranslateCompareToAsm(tree, node, tables, &label_spot, "jbe", out_stream, error);
             break;
         }
         case (Operators::LESS):
         {
-            printf("less\n");
             TranslateCompareToAsm(tree, node, tables, &label_spot, "ja", out_stream, error);
             break;
         }
         case (Operators::LESS_EQ):
         {
-            printf("lesseq\n");
             TranslateCompareToAsm(tree, node, tables, &label_spot, "jae", out_stream, error);
             break;
         }
         case (Operators::EQ):
         {
-            printf("eq\n");
             TranslateCompareToAsm(tree, node, tables, &label_spot, "je", out_stream, error);
             break;
         }
         case (Operators::NOT_EQ):
         {
-            printf("not eq\n");
             TranslateCompareToAsm(tree, node, tables, &label_spot, "jne", out_stream, error);
             break;
         }
         case (Operators::AND):
         {
-            printf("and\n");
             TranslateAndToAsm(tree, node, tables, &label_spot, out_stream, error);
             break;
         }
         case (Operators::OR):
         {
-            printf("or\n");
             TranslateOrToAsm(tree, node, tables, &label_spot, out_stream, error);
             break;
         }
         case (Operators::TYPE):
         {
-            printf("type\n");
             TranslateNodeToAsm(tree, node->right, tables, out_stream, error);
             break;
         }
         case (Operators::RETURN):
         {
-            printf("return\n");
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
             fprintf(out_stream, "ret\n");
             break;
         }
         case (Operators::ASSIGN):
         {
-            printf("assign\n");
             TranslateAssignToAsm(tree, node, tables, &ram_spot, out_stream, error);
             break;
         }
         case (Operators::IF):
         {
-            printf("if\n");
             int free_label = label_spot++;
 
             TranslateNodeToAsm(tree, node->left, tables, out_stream, error);
@@ -273,8 +245,6 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
         }
         case (Operators::WHILE):
         {
-            printf("while\n");
-
             int free_label_cycle = label_spot++;
             int free_label_cond  = label_spot++;
 
@@ -300,14 +270,12 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
 
         case (Operators::FUNC):
         {
-            printf("func\n");
-
             fprintf(out_stream, "\n:%s    %% FUNC START\n", tree->names.list[node->left->value.var].name);
 
             nametable_t* local = MakeNametable();
             StackPush(tables, local);
 
-            GetParams(tree, node, tables, &ram_spot);
+            GetParams(tree, node->left->left, tables, &ram_spot, out_stream);
 
             TranslateNodeToAsm(tree, node->left->right, tables, out_stream, error);
             fprintf(out_stream, "ret    %% FUNC END\n");
@@ -318,8 +286,6 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
         }
         case (Operators::FUNC_CALL):
         {
-            printf("func call\n");
-
             TranslateNodeToAsm(tree, node->left->left, tables, out_stream, error);
             fprintf(out_stream, "call :%s    %% CALLING FUNC\n", tree->names.list[node->left->value.var].name);
             break;
@@ -330,7 +296,7 @@ static void TranslateNodeToAsm(const tree_t* tree, const Node* node, Stack_t* ta
 
 //-----------------------------------------------------------------------------------------------------
 
-static void GetParams(const tree_t* tree, const Node* node, Stack_t* tables, int* ram_spot)
+static void GetParams(const tree_t* tree, const Node* node, Stack_t* tables, int* ram_spot, FILE* fp)
 {
     assert(tree);
     assert(tables);
@@ -340,24 +306,28 @@ static void GetParams(const tree_t* tree, const Node* node, Stack_t* tables, int
 
     if (node->type == NodeType::OP && node->value.opt == Operators::TYPE)
     {
-        GetParams(tree, node->right, tables, ram_spot);
+        GetParams(tree, node->right, tables, ram_spot, fp);
         return;
     }
 
     if (node->type == NodeType::OP && node->value.opt == Operators::COMMA)
     {
-        GetParams(tree, node->left, tables, ram_spot);
-        GetParams(tree, node->right, tables, ram_spot);
+        GetParams(tree, node->left, tables, ram_spot, fp);
+        GetParams(tree, node->right, tables, ram_spot, fp);
 
         return;
     }
 
     if (node->type == NodeType::VAR)
     {
-        int id = InsertNameInTable(LOCAL_TABLE(tables), NODE_NAME(node->left));
-        int ram_id = *ram_spot++;
+        int id = InsertNameInTable(LOCAL_TABLE(tables), NODE_NAME(node));
+        int ram_id = (*ram_spot)++;
 
         LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
+
+        printf("[%d]\n", *ram_spot);
+
+        fprintf(fp, "pop [%d]\n", ram_id);
         return;
     }
 
@@ -524,6 +494,8 @@ static void TranslateAssignToAsm(const tree_t* tree, const Node* node, Stack_t* 
         ram_id = *ram_spot;
 
         *ram_spot += 1;
+
+        printf("[%d]\n", *ram_spot);
 
         LOCAL_TABLE(tables)->list[id].ram_id = ram_id;
     }
