@@ -4,7 +4,7 @@
 #include "tree/tree.h"
 #include "common/errors.h"
 
-void TranslateToAsm(tree_t* tree, FILE* out_stream, error_t* error);
+void TranslateToAsm(const tree_t* tree, FILE* out_stream, error_t* error);
 
 enum class BackendErrors
 {

@@ -16,4 +16,4 @@ mid:
 .PHONY: clean
 
 clean:
-	make -f $(FRONT) clean && make -f $(BACK) clean && make -f $(MID) clean
+	make -f $(FRONT) clean && make -f $(BACK) clean && make -f $(MID) clean && cd asm && make clean && cd .. && cd spu && make clean && cd .. && cd common && rm -rf *.o && cd ..

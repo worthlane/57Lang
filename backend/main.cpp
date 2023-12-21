@@ -6,6 +6,9 @@
 #include "tree/tree_output.h"
 #include "common/file_read.h"
 #include "common/input_and_output.h"
+#include "backend.h"
+
+const char* BYTES_FILE = "assets/tmp_code.txt";
 
 int main(const int argc, const char* argv[])
 {
@@ -26,4 +29,8 @@ int main(const int argc, const char* argv[])
     EXIT_IF_TREE_ERROR(&error);
 
     DUMP_TREE(&tree);
+
+    FILE* out = fopen(BYTES_FILE, "w");
+
+    TranslateToAsm(&tree, out, &error);
 }

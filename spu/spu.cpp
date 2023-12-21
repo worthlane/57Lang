@@ -166,6 +166,12 @@ static elem_t ALU(spu_t* spu, CommandCode operation, elem_t val1, elem_t val2)
         case (CommandCode::ID_SQRT):
             result = Sqrt(val1);
             break;
+        case (CommandCode::ID_TAN):
+            result = tan(val1);
+            break;
+        case (CommandCode::ID_COT):
+            result = 1 / tan(val1);
+            break;
         case (CommandCode::ID_SIN):
             result = Sin(val1);
             break;

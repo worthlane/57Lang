@@ -13,7 +13,6 @@
 // ======================================================================
 
 DEF_OP(ADD, true, "+", (NUMBER_1 + NUMBER_2), true)
-
 DEF_OP(SUB, true, "-", (NUMBER_1 - NUMBER_2), true)
 DEF_OP(MUL, true, "*", (NUMBER_1 * NUMBER_2), true)
 DEF_OP(DIV, true, "/", (NUMBER_1 / NUMBER_2), true)

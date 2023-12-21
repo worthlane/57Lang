@@ -433,7 +433,9 @@ static Node* CallFunc(ParserState* storage, error_t* error)
     Node* vars = CallVars(storage, error);
     NULL_IF_ERR;
 
-    Node* fictive_node = MakeNode(NodeType::OP, {.opt = Operators::FUNC_CALL}, name, vars);
+    Node* fictive_node = MakeNode(NodeType::OP, {.opt = Operators::FUNC_CALL}, name);
+
+    ConnectNodes(name, vars, nullptr);
 
     return fictive_node;
 }
