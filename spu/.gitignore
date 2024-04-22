@@ -1,6 +1,0 @@
-.DS_Store
-.vscode
-*.out
-*.log
-a.out.dSYM
-build
