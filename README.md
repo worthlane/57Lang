@@ -17,7 +17,7 @@ One of main features is that you need to enter all numbers in letters.
 8 = eight
 9 = nine
 
-Maybe it will become clearly, when you'll see examples:
+Maybe it would become more clear, when you'd see examples:
 
 1. 57   = five_seven
 2. 179  = one_seven_nine
