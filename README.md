@@ -1,4 +1,4 @@
-# Programming language "57Lang"
+# Programming language "57Lang" (README AND COMPILER FOR LANGUAGE WILL BE AVAIBLE BEFORE 20th MAY 2024)
 
 ## How to code on this language
 Someone may find my language similar with c++, but there are some big differences.
