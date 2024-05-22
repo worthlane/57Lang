@@ -1,4 +1,6 @@
-# Programming language "57Lang" (README AND COMPILER FOR LANGUAGE WILL BE AVAIBLE BEFORE 20th MAY 2024)
+# Programming language "57Lang"
+
+P.S. I improved this version of language in the new [repository](https://github.com/worthlane/x86compiler_for_57Lang)
 
 ## How to code on this language
 Someone may find my language similar with c++, but there are some big differences.
